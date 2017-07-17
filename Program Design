@@ -1,0 +1,29 @@
+BACKGROUND:
+Import background image. 
+Import platform image. 
+
+Gravity:
+Constant acceleration of all sprites downwards. 
+Platform is static, thus: 
+If sprites are on platform, there is no downward movement.
+Else if sprites fall off platform they are carried down by gravity.
+
+SPRITE class:
+Left/Right Movement:
+Similar to CarSprite demo. 
+
+Jump:
+If up arrow or W pressed, sprite displaced by given position. 
+Gravity carries sprite back down. 
+
+Punch:
+TBD
+
+PROJECTILE class:
+When space bar pressed, projectile starts accelerating at constant velocity in one direction, dependent on which way the sprite is facing. 
+If projectile hits the hit box of a next sprite within given amount of time, it deletes itself.
+  Add damage to enemy (health bar decreases). 
+Else if projectile does not hit a hit box within a given amount of time, it deletes itself. 
+
+
+
