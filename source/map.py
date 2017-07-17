@@ -20,7 +20,7 @@ class Map:
 
 class Platform:
 
-	def __init__(self, position, image):
+	def __init__(self, position, image, fall_through = False):
 		#pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load(image)
 		image_rect = self.image.get_rect()
@@ -28,6 +28,7 @@ class Platform:
 		self.y = position[1]
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		self.boundary_rect = Rect(self.rect.left, self.rect.top + 20, self.rect.width, 20)
+		self.fall_through = fall_through
 
 	def draw(self):
 		screen.blit(self.image, self.rect)
@@ -48,6 +49,8 @@ class Ball:
 		self.platforms = []
 		self.radius = 4
 		self.touching_platform = False
+		self.velx = 0
+		self.can_jump = True
 
 	def draw(self):
 		pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
@@ -58,39 +61,52 @@ class Ball:
 	def get_rect(self):
 		return Rect(self.position, (self.radius, self.radius))
 
+	def jump(self):
+		if self.can_jump:
+			self.speed -= 10
+			self.can_jump = False
+
+
 	def move(self, x, y):
 		self.position = (x, y)
 		self.rect = self.get_rect()
 
 	def update(self, deltat):
 		#SIMULATION
-		if True:
-			#self.speed += (self.k_up + self.k_down)
-			#print(self.speed)
+		#self.speed += (self.k_up + self.k_down)
+		#print(self.speed)
+		'''
+		if self.speed > self.MAX_FORWARD_SPEED: 
+			self.speed = self.MAX_FORWARD_SPEED
+		elif self.speed < -self.MAX_REVERSE_SPEED:
+			self.speed = -self.MAX_REVERSE_SPEED
 			'''
-			if self.speed > self.MAX_FORWARD_SPEED: 
-				self.speed = self.MAX_FORWARD_SPEED
-			elif self.speed < -self.MAX_REVERSE_SPEED:
-				self.speed = -self.MAX_REVERSE_SPEED
-				'''
-			#if self.speed > self.
-			if self.speed > self.MAX_FORWARD_SPEED:
-				speed = self.MAX_FORWARD_SPEED
-			if not self.touching_platform:
-				self.speed += self.ACCELERATION
-				x, y = self.position
-				y += self.speed
-				self.move(x, y)
-			#if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
-			#print(self.rect.left, self.rect.top)
-			#print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
-			if self.rect.colliderect(self.platforms[0].boundary_rect): 
-				self.touching_platform = True
-				self.speed = 0 
-				self.move(x, self.platforms[0].boundary_rect.top - self.radius)			
-				# self.speed *= -1
-			else:
-				self.touching_platform = False
+		#if self.speed > self.
+		self.move(self.position[0] + self.velx, self.position[1])
+		if self.speed > self.MAX_FORWARD_SPEED:
+			speed = self.MAX_FORWARD_SPEED
+		if not self.touching_platform:
+			self.speed += self.ACCELERATION
+		x, y = self.position
+		y += self.speed
+		self.move(x, y)
+		#if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
+		#print(self.rect.left, self.rect.top)
+		#print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
+		if y >= 570:
+			self.move(screen.get_width() / 2, 0)
+			self.speed = 0
+			self.velx = 0
+		if self.rect.colliderect(self.platforms[0].boundary_rect) and not self.platforms[0].fall_through: 
+			self.touching_platform = True
+			self.speed = 0 
+			self.move(x, self.platforms[0].boundary_rect.top - self.radius)		
+			self.can_jump = True	
+			# self.speed *= -1
+			self.velx = 0
+		else:
+			self.touching_platform = False
+		
 
 			
 
@@ -112,12 +128,14 @@ while 1:
 	for event in pygame.event.get():
 		if not hasattr(event, 'key'): continue
 		down = event.type == KEYDOWN
-		if event.key == K_RIGHT:
-			ball.move(ball.position[0] + 5, ball.position[1])
-		if event.key == K_LEFT:
-			ball.move(ball.position[0] - 5, ball.position[1])
-		if event.key == K_ESCAPE:
+		if event.key == K_UP:
+			ball.jump()
+		elif event.key == K_ESCAPE:
 			sys.exit(0)
+	if pygame.key.get_pressed()[pygame.K_LEFT]:
+		ball.velx = -5
+	elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+		ball.velx = 5
 	pygame.display.update()
 	map1.draw()
 	ball.update(deltat)
