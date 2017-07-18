@@ -3,21 +3,6 @@ from pygame.locals import *
 screen = pygame.display.set_mode((1024, 576))
 clock = pygame.time.Clock()
 
-class Map:
-
-	def __init__(self, name, background_image):
-		self.name = name 
-		self.background_image = pygame.image.load(background_image)
-		self.platforms = []
-
-
-	def draw(self):
-		pygame.display.set_caption(self.name)
-		screen.blit(self.background_image, (0,0))
-		for plat in self.platforms:
-			plat.draw()
-		#self.screen
-
 class Platform:
 
 	def __init__(self, position, image, fall_through = False):
@@ -26,42 +11,63 @@ class Platform:
 		image_rect = self.image.get_rect()
 		self.x = position[0]
 		self.y = position[1]
-		print(image_rect.width, image_rect.height)
 		num = image_rect.width / 30
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
-		boundary_bottom = Rect(self.rect.left, self.rect.bottom - num, self.rect.width, num)
-		boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
-		boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
+		boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
+		boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+		boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
 		self.fall_through = fall_through 
 
 	def draw(self):
 		screen.blit(self.image, self.rect)
-		colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
-		for i in range(len(self.boundaries)):
-			pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
+		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		# for i in range(len(self.boundaries)):
+		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
 
+
+class Map:
+	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
+	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom.png"),
+	Platform((3 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Left.png", fall_through = True), Platform((5 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Right.png", fall_through = True),
+	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True)))}
+	def __init__(self, name, background_image = "default"):
+		self.name = name
+		self.platforms = []
+		if background_image == "default":
+			background_image = self.MAP_MASTER[name][0]
+			self.platforms.extend(self.MAP_MASTER[name][1])
+		self.background_image = pygame.image.load(background_image)
+		
+	def draw(self):
+		pygame.display.set_caption(self.name)
+		screen.blit(self.background_image, (0,0))
+		for plat in self.platforms:
+			plat.draw()
+		#self.screen
 
 class Ball:
 	ACCELERATION = 0.5
-	MAX_FORWARD_SPEED = 10
+	max_forward_speed = 7.8
 	MAX_REVERSE_SPEED = -5
 
-	def __init__(self, position):
+	def __init__(self, position, platforms = []):
 		#pygame.sprite.Sprite.__init__(self)
 		self.position = position
-		self.rect = Rect(position, (4,4))
 		self.speed = 0
 		self.k_up = self.k_down = 0
-		self.platforms = []
+		self.platforms = platforms
 		self.radius = 4
 		self.touching_platform = False
 		self.velx = 0
 		self.jump_ctr = 2
+		self.rect = self.get_rect()
+		self.fast_falling = False
 
 	def draw(self):
 		pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
+		#pygame.draw.rect(screen, (255,255,255), self.bottom_box, 0)
 
 	def add_platforms(self, platforms):
 		self.platforms.extend(platforms)
@@ -73,7 +79,7 @@ class Ball:
 		x, y = self.position
 		if self.jump_ctr == 2:
 			#self.move(x, y - 30)
-			self.speed = -20
+			self.speed = -10
 			self.jump_ctr -= 1
 		elif self.jump_ctr == 1:
 			self.speed = -8
@@ -89,60 +95,82 @@ class Ball:
 		#self.speed += (self.k_up + self.k_down)
 		#print(self.speed)
 		'''
-		if self.speed > self.MAX_FORWARD_SPEED: 
-			self.speed = self.MAX_FORWARD_SPEED
+		if self.speed > self.max_forward_speed: 
+			self.speed = self.max_forward_speed
 		elif self.speed < -self.MAX_REVERSE_SPEED:
 			self.speed = -self.MAX_REVERSE_SPEED
 			'''
 		#if self.speed > self.
+
+
+
+
 		self.move(self.position[0] + self.velx, self.position[1])
-		if self.speed > self.MAX_FORWARD_SPEED:
-			self.speed = self.MAX_FORWARD_SPEED
-		if not self.touching_platform:
+
+
+
+		if not self.touching_platform and self.fast_falling:
+			self.speed += self.ACCELERATION * 2
+		elif not self.touching_platform:
 			self.speed += self.ACCELERATION
+		if self.speed > self.max_forward_speed:
+			self.speed = self.max_forward_speed
 		x, y = self.position
 		y += self.speed
+		self.max_forward_speed = 7.8
 		self.move(x, y)
-		#if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
-		#print(self.rect.left, self.rect.top)
-		#print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
-		boundary_rect = self.platforms[0].boundaries[0]
+		# if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
+		# print(self.rect.left, self.rect.top)
+		# print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
+		
 		if y >= 570:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
-		if self.rect.colliderect(boundary_rect) and not self.platforms[0].fall_through: 
-			if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
+
+
+
+		for platform in self.platforms:
+			boundary_rect = platform.boundaries[0]
+			if self.rect.colliderect(boundary_rect) and self.speed >= 0 and (not self.fast_falling or not platform.fall_through): #and not platform.fall_through: 
+				#if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
 				#print(2)
 				self.touching_platform = True
 				self.speed = 0 
-				self.move(x, boundary_rect.top - self.radius + 1)		
+				self.move(x, boundary_rect.top - self.radius)		
 				self.jump_ctr = 2	
 				# self.speed *= -1
 				self.velx = 0
-			elif self.rect.top < boundary_rect.bottom and self.rect.top - boundary_rect.bottom < 0:
-				#print(1)
-				self.speed = 0 
-				self.move(x, boundary_rect.bottom + self.radius - 1)		
-				self.velx = 0
-		else:
-			self.touching_platform = False
-		
-
-			
+			if not self.rect.colliderect(boundary_rect) and not platform.fall_through:
+				if self.rect.colliderect(platform.boundaries[1]):
+					self.speed = 0 
+					self.move(x, platform.boundaries[1].bottom + self.radius )		
+					#self.velx = 0
+					self.touching_platform = False
+				elif self.rect.colliderect(platform.boundaries[2]):
+					#self.speed = 0 
+					self.move(platform.boundaries[2].left - self.radius, y)		
+					self.velx = 0
+					self.touching_platform = False
+				elif self.rect.colliderect(platform.boundaries[3]):
+					#self.speed = 0 
+					self.move(platform.boundaries[3].right + self.radius, y)		
+					self.velx = 0
+					self.touching_platform = False
+				else:
+					self.touching_platform = False
+			else:
+				self.touching_platform = False
 
 
 #460 x 171
-plat_image = "../resources/Platforms/Stage1.jpg"
+
 plat_image1 = "../resources/Platforms/Battlefield_Top.png"
-image = "../resources/Backgrounds/SpaceBG.jpg"
 image1= "../resources/Backgrounds/CastleBG.jpg"
-map1 = Map("Final Destination", image)
-plat1 = Platform((screen.get_width() / 2, screen.get_height() / 2), plat_image)
-map1.platforms.append(plat1)
+map1 = Map("Battlefield")
+#map1 = Map("Final Destination")
 #pygame.sprite.spritecollide(, surface_group, False)
-ball = Ball((screen.get_width() / 2, 100))
-ball.add_platforms([plat1])
+ball = Ball((screen.get_width() / 2, 100), map1.platforms)
 
 while 1:
 	deltat = clock.tick(30)
@@ -159,13 +187,19 @@ while 1:
 			sys.exit(0)
 	if pygame.key.get_pressed()[pygame.K_LEFT]:
 		ball.velx = -5
+
 	if pygame.key.get_pressed()[pygame.K_RIGHT]:
 		ball.velx = 5
+
+	if pygame.key.get_pressed()[pygame.K_DOWN]:
+		ball.fast_falling = True
+		ball.max_forward_speed *= 2
+	else:
+		ball.fast_falling = False
 	pygame.display.update()
 	map1.draw()
 	ball.update(deltat)
 	ball.draw()
-
 
 
 	#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
