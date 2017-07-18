@@ -26,18 +26,26 @@ class Platform:
 		image_rect = self.image.get_rect()
 		self.x = position[0]
 		self.y = position[1]
+		print(image_rect.width, image_rect.height)
+		num = image_rect.width / 30
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
-		self.boundary_rect = Rect(self.rect.left, self.rect.top + 20, self.rect.width, self.rect.height)
-		self.fall_through = fall_through
+		boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
+		boundary_bottom = Rect(self.rect.left, self.rect.bottom - num, self.rect.width, num)
+		boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
+		boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
+		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
+		self.fall_through = fall_through 
 
 	def draw(self):
 		screen.blit(self.image, self.rect)
-		#pygame.draw.rect(screen, (255,255,0), self.boundary_rect, 0) #uncomment to see center 
+		colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		for i in range(len(self.boundaries)):
+			pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
 
 
 class Ball:
 	ACCELERATION = 0.5
-	MAX_FORWARD_SPEED = 1
+	MAX_FORWARD_SPEED = 10
 	MAX_REVERSE_SPEED = -5
 
 	def __init__(self, position):
@@ -65,7 +73,7 @@ class Ball:
 		x, y = self.position
 		if self.jump_ctr == 2:
 			#self.move(x, y - 30)
-			self.speed = -10
+			self.speed = -20
 			self.jump_ctr -= 1
 		elif self.jump_ctr == 1:
 			self.speed = -8
@@ -89,7 +97,7 @@ class Ball:
 		#if self.speed > self.
 		self.move(self.position[0] + self.velx, self.position[1])
 		if self.speed > self.MAX_FORWARD_SPEED:
-			speed = self.MAX_FORWARD_SPEED
+			self.speed = self.MAX_FORWARD_SPEED
 		if not self.touching_platform:
 			self.speed += self.ACCELERATION
 		x, y = self.position
@@ -98,17 +106,25 @@ class Ball:
 		#if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
 		#print(self.rect.left, self.rect.top)
 		#print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
+		boundary_rect = self.platforms[0].boundaries[0]
 		if y >= 570:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
-		if self.rect.colliderect(self.platforms[0].boundary_rect) and not self.platforms[0].fall_through: 
-			self.touching_platform = True
-			self.speed = 0 
-			self.move(x, self.platforms[0].boundary_rect.top - self.radius)		
-			self.jump_ctr = 2	
-			# self.speed *= -1
-			self.velx = 0
+		if self.rect.colliderect(boundary_rect) and not self.platforms[0].fall_through: 
+			if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
+				#print(2)
+				self.touching_platform = True
+				self.speed = 0 
+				self.move(x, boundary_rect.top - self.radius + 1)		
+				self.jump_ctr = 2	
+				# self.speed *= -1
+				self.velx = 0
+			elif self.rect.top < boundary_rect.bottom and self.rect.top - boundary_rect.bottom < 0:
+				#print(1)
+				self.speed = 0 
+				self.move(x, boundary_rect.bottom + self.radius - 1)		
+				self.velx = 0
 		else:
 			self.touching_platform = False
 		
@@ -118,7 +134,7 @@ class Ball:
 
 #460 x 171
 plat_image = "../resources/Platforms/Stage1.jpg"
-plat_image1 = "../resources/Platforms/Battlefield_Bottom.png"
+plat_image1 = "../resources/Platforms/Battlefield_Top.png"
 image = "../resources/Backgrounds/SpaceBG.jpg"
 image1= "../resources/Backgrounds/CastleBG.jpg"
 map1 = Map("Final Destination", image)
