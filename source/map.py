@@ -50,7 +50,7 @@ class Map:
 class Ball:
 	ACCELERATION = 0.5
 	max_forward_speed = 7.8
-	MAX_REVERSE_SPEED = -5
+	MAX_X_SPEED = 5
 
 	def __init__(self, position, platforms = []):
 		#pygame.sprite.Sprite.__init__(self)
@@ -64,6 +64,7 @@ class Ball:
 		self.jump_ctr = 2
 		self.rect = self.get_rect()
 		self.fast_falling = False
+		self.accx = 0
 
 	def draw(self):
 		pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
@@ -91,34 +92,27 @@ class Ball:
 		self.rect = self.get_rect()
 
 	def update(self, deltat):
-		#SIMULATION
-		#self.speed += (self.k_up + self.k_down)
-		#print(self.speed)
-		'''
-		if self.speed > self.max_forward_speed: 
-			self.speed = self.max_forward_speed
-		elif self.speed < -self.MAX_REVERSE_SPEED:
-			self.speed = -self.MAX_REVERSE_SPEED
-			'''
-		#if self.speed > self.
+		x, y = self.position
+		self.velx *= 0.8
+		self.velx += self.accx
 
-
-
-
-		self.move(self.position[0] + self.velx, self.position[1])
-
-
-
+		x += self.velx
+		y += self.speed
+		#self.acccx = 0
+		if self.velx > abs(self.MAX_X_SPEED) and self.velx < 0:
+			self.velx = -self.MAX_X_SPEED
+		elif self.velx > abs(self.MAX_X_SPEED) and self.velx > 0:
+			self.velx = self.MAX_X_SPEED
+		self.move(x, y)
 		if not self.touching_platform and self.fast_falling:
 			self.speed += self.ACCELERATION * 2
 		elif not self.touching_platform:
 			self.speed += self.ACCELERATION
 		if self.speed > self.max_forward_speed:
 			self.speed = self.max_forward_speed
-		x, y = self.position
-		y += self.speed
 		self.max_forward_speed = 7.8
-		self.move(x, y)
+		#self.move(x, y)
+
 		# if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
 		# print(self.rect.left, self.rect.top)
 		# print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
@@ -140,7 +134,7 @@ class Ball:
 				self.move(x, boundary_rect.top - self.radius)		
 				self.jump_ctr = 2	
 				# self.speed *= -1
-				self.velx = 0
+				#self.velx = 0
 			if not self.rect.colliderect(boundary_rect) and not platform.fall_through:
 				if self.rect.colliderect(platform.boundaries[1]):
 					self.speed = 0 
@@ -185,11 +179,16 @@ while 1:
 				ball.jump()
 		if event.key == K_ESCAPE:
 			sys.exit(0)
-	if pygame.key.get_pressed()[pygame.K_LEFT]:
-		ball.velx = -5
 
-	if pygame.key.get_pressed()[pygame.K_RIGHT]:
-		ball.velx = 5
+	if ball.speed == 0:
+		if pygame.key.get_pressed()[pygame.K_LEFT]:
+			ball.accx = -2
+
+		if pygame.key.get_pressed()[pygame.K_RIGHT]:
+			ball.accx = 2
+
+		if not(pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
+			ball.accx = 0
 
 	if pygame.key.get_pressed()[pygame.K_DOWN]:
 		ball.fast_falling = True
