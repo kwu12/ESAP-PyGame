@@ -73,7 +73,7 @@ rect = screen.get_rect()
 all_sprites = pygame.sprite.Group()
 shot_list = pygame.sprite.Group()
 
-turtle = Player('resources/Mario/Mario_Idle/Mario_Idle1.png', rect.center)
+turtle = Player('Mario/Mario_Idle/Mario_Idle1.png', rect.center)
 all_sprites.add(turtle)
 
 facing = "right"
@@ -107,7 +107,7 @@ while 1:
 		elif event.key == K_SPACE:
 			if shoot == False:
 				direction = facing
-				proj = Projectile(turtle.position, 'resources/Mario/Mario_Neutral_B/Mario_Fireball.png')
+				proj = Projectile(turtle.position, 'Mario/Mario_Neutral_B/Mario_Fireball.png')
 				proj.rect.x = turtle.rect.x
 				proj.rect.y = turtle.rect.y
 				all_sprites.add(proj)
