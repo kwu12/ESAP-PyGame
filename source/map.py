@@ -64,13 +64,11 @@ class Ball:
 	def jump(self):
 		x, y = self.position
 		if self.jump_ctr == 2:
-			self.move(x, y - 30)
-			self.speed -= 10
+			#self.move(x, y - 30)
+			self.speed = -10
 			self.jump_ctr -= 1
-			print("one")
 		elif self.jump_ctr == 1:
-			print("two")
-			self.speed -= 5
+			self.speed = -8
 			self.jump_ctr -= 1
 
 
@@ -133,15 +131,15 @@ ball.add_platforms([plat1])
 while 1:
 	deltat = clock.tick(30)
 	for event in pygame.event.get():
+		if event.type == QUIT:
+			sys.exit(0)
 		if not hasattr(event, 'key'): continue
-		down = event.type == KEYDOWN
-		if event.key == K_UP and ball.jump_ctr == 1:
-			ball.jump()
-			pygame.time.wait(150)
-		if event.key == K_UP and ball.jump_ctr == 2:
-			ball.jump()
-			pygame.time.wait(150)
-		elif event.key == K_ESCAPE:
+		if event.type == KEYDOWN:
+			if event.key == K_UP and ball.jump_ctr == 1:
+				ball.jump()
+			if event.key == K_UP and ball.jump_ctr == 2:
+				ball.jump()
+		if event.key == K_ESCAPE:
 			sys.exit(0)
 	if pygame.key.get_pressed()[pygame.K_LEFT]:
 		ball.velx = -5
