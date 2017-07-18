@@ -146,6 +146,7 @@ class Ball:
 			self.velx = 0
 		if self.rect.colliderect(self.platforms[0].boundary_rect) and not self.platforms[0].fall_through: 
 			self.touching_platform = True
+			print(self.speed)
 			self.speed = 0 
 			self.move(x, self.platforms[0].boundary_rect.top + 1 - self.rect.height)		
 			self.jump_ctr = 2	

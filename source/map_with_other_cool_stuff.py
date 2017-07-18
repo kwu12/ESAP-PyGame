@@ -11,25 +11,30 @@ class Platform:
 		image_rect = self.image.get_rect()
 		self.x = position[0]
 		self.y = position[1]
-		num = image_rect.width / 30
+		num = image_rect.width / 25
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
-		boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
+		# boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
+		# boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
+		# boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+		# boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+
+		boundary_top = Rect(self.rect.left + num, self.rect.top + num, self.rect.width - 2 * num, num)
 		boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
-		boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
-		boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
+		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
 		self.fall_through = fall_through 
 
 	def draw(self):
 		screen.blit(self.image, self.rect)
-		colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
-		for i in range(len(self.boundaries)):
-			pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
-
+		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		# for i in range(len(self.boundaries)):
+		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
+#TODO CHANGE BOTTOM AND SIDES BOUDNAY
 
 class Map:
 	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
-	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom.png"),
+	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom1.png"),
 	Platform((3 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Left.png", fall_through = True), Platform((5 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Right.png", fall_through = True),
 	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True)))}
 	def __init__(self, name, background_image = "default"):
@@ -131,7 +136,7 @@ class Ball:
 		x, y = self.position
 		if self.jump_ctr == 2:
 			#self.move(x, y - 30)
-			self.speed = -10
+			self.speed = -13
 			self.jump_ctr -= 1
 			self.anim_mode = self.JUMPING
 			self.state_mode = self.JUMPING
@@ -192,38 +197,44 @@ class Ball:
 			self.velx = 0
 
 
-
+		bools = []
 		for platform in self.platforms:
 			boundary_rect = platform.boundaries[0]
 			if self.rect.colliderect(boundary_rect) and self.speed >= 0 and (not self.fast_falling or not platform.fall_through): #and not platform.fall_through: 
 				#if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
 				#print(2)
-				self.touching_platform = True
+				# print(self.rect.bottom)
+				# print(boundary_rect.top)
 				self.speed = 0 
-				self.move(x, boundary_rect.top - self.rect.height + 1)		
+				self.move(x, boundary_rect.top - self.rect.height) 		
 				self.jump_ctr = 2	
+				bools.append(True)
 				# self.speed *= -1
 				#self.velx = 0
+			else:
+				bools.append(False)
 			if not self.rect.colliderect(boundary_rect) and not platform.fall_through:
+				#print("Here")
 				if self.rect.colliderect(platform.boundaries[1]):
 					self.speed = 0 
 					self.move(x, platform.boundaries[1].bottom + self.rect.height)		
 					#self.velx = 0
-					self.touching_platform = False
 				elif self.rect.colliderect(platform.boundaries[2]):
 					#self.speed = 0 
-					self.move(platform.boundaries[2].left - self.rect.height, y)		
+					self.move(platform.boundaries[2].left - self.rect.width, y)		
 					self.velx = 0
-					self.touching_platform = False
 				elif self.rect.colliderect(platform.boundaries[3]):
 					#self.speed = 0 
-					self.move(platform.boundaries[3].right + self.rect.height, y)		
+					self.move(platform.boundaries[3].right, y)		
 					self.velx = 0
-					self.touching_platform = False
-				else:
-					self.touching_platform = False
-			else:
-				self.touching_platform = False
+			self.touching_platform = True in bools
+				# else:
+				# 	self.touching_platform = False
+				# else:
+				# 	self.touching_platform = False
+
+			
+
 	def anim_incrementer_no_loop(self, max, dont_loop):
 		if(self.anim_ctr==max):
 			self.state_mode = self.IDLE
