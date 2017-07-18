@@ -35,7 +35,7 @@ class Projectile(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.center = self.position
 
-#Create a car and run
+#Create a projectile and run
 rect = screen.get_rect()
 projectile = Projectile('projectile.png', rect.center)
 #create a sprite group that contains just that image
@@ -47,13 +47,13 @@ while 1:
 		if not hasattr(event, 'key'): continue
 		down = event.type == KEYDOWN
 		if event.key == K_RIGHT: 
-			car.k_right = down * -5
+			projectile.k_right = down * -5
 		elif event.key == K_LEFT:
-			car.k_left = down * 5
+			projectile.k_left = down * 5
 		elif event.key == K_UP:
-			car.k_up = down * 2
+			projectile.k_up = down * 2
 		elif event.key == K_DOWN:
-			car.k_down = down * -2
+			projectile.k_down = down * -2
 		elif event.key == K_ESCAPE:
 			sys.exit(0)
 
