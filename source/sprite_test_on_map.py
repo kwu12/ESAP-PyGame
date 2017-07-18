@@ -9,7 +9,6 @@ class Map:
 		self.background_image = pygame.image.load(background_image)
 		self.platforms = []
 
-
 	def draw(self):
 		pygame.display.set_caption(self.name)
 		screen.blit(self.background_image, (0,0))
@@ -36,10 +35,12 @@ class Ball:
 	IDLE = 0
 	RUNNING = 1
 	JUMPING = 2
-	ANIM_NAME = ["Idle","Running","Jumping"]
-	ANIM_INC = [20,30,14]
-	ANIM_LOOP = [False, False, True]
-	ANIM_MOD = [5,4,7]
+	NEUTRAL_B = 3
+	JAB = 4
+	ANIM_NAME = ["Idle","Running","Jumping","Neutral_B","Jab"]
+	ANIM_INC = [20,30,14,19,18]
+	ANIM_LOOP = [False, False, True, False, False]
+	ANIM_MOD = [5,4,7,5,6]
 	ACCELERATION = 0.5
 	MAX_FORWARD_SPEED = 1
 	MAX_REVERSE_SPEED = -5
@@ -80,8 +81,9 @@ class Ball:
 		
 		if(self.direction == "left"):
 			self.image = pygame.transform.flip(self.image,True,False)
-		self.rect = self.get_rect()
+		#self.rect = self.get_rect()
 		screen.blit(self.image, self.position)
+		#pygame.draw.rect(screen, (255, 0, 0), self.rect, 0)
 
 		#pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
 
@@ -91,6 +93,8 @@ class Ball:
 	# 	else:
 	# 		self.anim_ctr = 0
 	def anim_incrementer_no_loop(self, max, dont_loop):
+		if(self.anim_ctr==max):
+			self.state_mode = self.IDLE
 		if(self.anim_ctr>max):
 			self.anim_ctr = max
 		if(self.anim_ctr<max):
@@ -117,7 +121,6 @@ class Ball:
 		elif self.jump_ctr == 1:
 			self.speed = -8
 			self.jump_ctr -= 1
-
 
 	def move(self, x, y):
 		self.position = (x, y)
@@ -152,8 +155,28 @@ class Ball:
 			self.touching_platform = False
 		
 
-			
-
+class Projectile(pygame.sprite.Sprite):
+	def __init__(self, position, image, direction):
+		super().__init__()
+		self.position = position
+		self.xspeed = 15
+		self.image = pygame.image.load(image)
+		self.rect = self.image.get_rect()
+		self.rect.x, self.rect.y = position 
+		self.direction = direction
+		self.life_ctr = 0
+		
+	def update(self):
+		self.image = pygame.transform.rotate(self.image, 90)
+		screen.blit(self.image, self.rect)
+		self.life_ctr += 1
+		if(self.life_ctr>45):
+			self.kill()
+		if shoot == True:
+			if self.direction != "right":
+				self.rect.x -= self.xspeed
+			else:
+				self.rect.x += self.xspeed
 
 #460 x 171
 plat_image = "../resources/Platforms/Stage1.jpg"
@@ -164,6 +187,8 @@ map1 = Map("Battlefield", image)
 plat1 = Platform((screen.get_width() / 2, screen.get_height() / 2), plat_image1)
 map1.platforms.append(plat1)
 #pygame.sprite.spritecollide(, surface_group, False)
+shot_list = pygame.sprite.Group()
+shoot = False
 ball = Ball((screen.get_width() / 2, 100))
 ball.add_platforms([plat1])
 
@@ -179,12 +204,24 @@ while 1:
 				#ball.jump()
 			if event.key == K_UP and ball.jump_ctr == 2:
 				ball.jump()
+			elif event.key == K_SPACE:
+				#if shoot == False:
+					if(ball.anim_mode!=ball.NEUTRAL_B):
+						ball.anim_ctr = 0
+					ball.anim_mode = ball.NEUTRAL_B
+					proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction)
+					ball.state_mode = ball.NEUTRAL_B
+					# proj.rect.x = 
+					# proj.rect.y = 
+					#all_sprites.add(proj)
+					shot_list.add(proj)
+					shoot = True
 		if event.type == KEYUP:
 			if (event.key == K_LEFT or event.key == K_RIGHT) and ball.touching_platform:
 				ball.anim_mode = ball.IDLE
 		if event.key == K_ESCAPE:
 			sys.exit(0)
-	if(ball.touching_platform):
+	if(ball.touching_platform and ball.state_mode == ball.IDLE):
 		if(ball.falling == True):
 			ball.state_mode = ball.IDLE
 			ball.falling = False
@@ -210,18 +247,27 @@ while 1:
 				ball.direction = "right"
 		if not(pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
 			ball.accx = 0
+		if(pygame.key.get_pressed()[pygame.K_p]):
+			if(ball.anim_mode!=ball.JAB):
+				ball.anim_ctr = 0
+			ball.anim_mode = ball.JAB
+			ball.state_mode = ball.JAB
 	else:
 		if pygame.key.get_pressed()[pygame.K_LEFT]:
 			ball.accx = -1.4
 		if pygame.key.get_pressed()[pygame.K_RIGHT]:
 			ball.accx = 1.4
+
+	for shot in shot_list:
+		shot.update()
+    # Remove the bullet if it flies up off the screen
+		# if shot.rect.x >= 1024 or shot.rect.x <= -20:
+		# 	shot.kill()
+		# 	#all_sprites.remove(shot)
+		# 	shot_list.remove(shot)
+		# 	shoot = False
 	pygame.display.update()
 	map1.draw()
 	ball.update(deltat)
-	ball.draw()
-
-
-
+	ball.draw()	
 	#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
-
-
