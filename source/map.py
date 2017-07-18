@@ -27,7 +27,7 @@ class Platform:
 		self.x = position[0]
 		self.y = position[1]
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
-		self.boundary_rect = Rect(self.rect.left, self.rect.top + 20, self.rect.width, 20)
+		self.boundary_rect = Rect(self.rect.left, self.rect.top + 20, self.rect.width, self.rect.height)
 		self.fall_through = fall_through
 
 	def draw(self):
@@ -50,7 +50,7 @@ class Ball:
 		self.radius = 4
 		self.touching_platform = False
 		self.velx = 0
-		self.can_jump = True
+		self.jump_ctr = 2
 
 	def draw(self):
 		pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
@@ -62,9 +62,16 @@ class Ball:
 		return Rect(self.position, (self.radius, self.radius))
 
 	def jump(self):
-		if self.can_jump:
+		x, y = self.position
+		if self.jump_ctr == 2:
+			self.move(x, y - 30)
 			self.speed -= 10
-			self.can_jump = False
+			self.jump_ctr -= 1
+			print("one")
+		elif self.jump_ctr == 1:
+			print("two")
+			self.speed -= 5
+			self.jump_ctr -= 1
 
 
 	def move(self, x, y):
@@ -101,7 +108,7 @@ class Ball:
 			self.touching_platform = True
 			self.speed = 0 
 			self.move(x, self.platforms[0].boundary_rect.top - self.radius)		
-			self.can_jump = True	
+			self.jump_ctr = 2	
 			# self.speed *= -1
 			self.velx = 0
 		else:
@@ -112,10 +119,10 @@ class Ball:
 
 
 #460 x 171
-plat_image = "../resources/Stage_images/Stage1.jpg"
-plat_image1 = "../resources/Battlefield_Bottom.png"
-image = "../resources/space.jpg"
-image1= "../resources/CastleBG.jpg"
+plat_image = "../resources/Platforms/Stage1.jpg"
+plat_image1 = "../resources/Platforms/Battlefield_Bottom.png"
+image = "../resources/Backgrounds/SpaceBG.jpg"
+image1= "../resources/Backgrounds/CastleBG.jpg"
 map1 = Map("Final Destination", image)
 plat1 = Platform((screen.get_width() / 2, screen.get_height() / 2), plat_image)
 map1.platforms.append(plat1)
@@ -128,13 +135,17 @@ while 1:
 	for event in pygame.event.get():
 		if not hasattr(event, 'key'): continue
 		down = event.type == KEYDOWN
-		if event.key == K_UP:
+		if event.key == K_UP and ball.jump_ctr == 1:
 			ball.jump()
+			pygame.time.wait(150)
+		if event.key == K_UP and ball.jump_ctr == 2:
+			ball.jump()
+			pygame.time.wait(150)
 		elif event.key == K_ESCAPE:
 			sys.exit(0)
 	if pygame.key.get_pressed()[pygame.K_LEFT]:
 		ball.velx = -5
-	elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+	if pygame.key.get_pressed()[pygame.K_RIGHT]:
 		ball.velx = 5
 	pygame.display.update()
 	map1.draw()
