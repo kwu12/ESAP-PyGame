@@ -1,0 +1,19 @@
+name = Battlefield
+base_image = CastleBG.jpg
+**PLATFORM**
+platformx = 0.5
+platformy = 0.5
+plat_image = Battlefield_Stage.png
+fall_through = False
+move_params0 = None
+move_params1 = None
+move_params2 = None
+**PLATFORM**
+platformx = 0.5
+platformy = 0.375
+plat_image = Battlefield_Platform.png
+fall_through = True
+move_params0 = 400
+move_params1 = 6
+move_params2 = 15
+**PLATFORM**

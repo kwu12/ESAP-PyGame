@@ -52,16 +52,6 @@ class Platform:
 	def update(self, deltat):
 		if self.move_params != None:
 			speed = self.move_params[1]
-			# if self.x > self.target:
-			# 	self.dir = -1
-			# 	self.x = self.target
-			# elif self.x < self.target - self.move_params[0]:
-			# 	self.dir = 1
-			# 	self.x = self.target - self.move_params[0]
-			# elif self.dir == 1:
-			# 	self.move(self.x + speed / (self.target - self.x), self.y)
-			# elif self.dir == -1: #self.x > self.target - self.move_params[0] or self.x == self.target:
-			# 	self.move(self.x - speed, self.y)
 			vel = self.mvmnt_inc(deltat)
 			self.time += deltat #* speed 
 			self.move(self.x + vel, self.y)
@@ -85,7 +75,7 @@ def create_map_from_file(name):
 					if plt[4] == "None":
 						mp = None
 					else:
-						mp = (float(plt[4]), float(plt[5]))
+						mp = (float(plt[4]), float(plt[5]), float(plt[6]))
 					ft = plt[3] == "True"
 					plats.append(Platform((plt[0],plt[1]), plt[2], fall_through = ft, move_params = mp))
 				plt = []
@@ -101,6 +91,8 @@ def create_map_from_file(name):
 				plt.append(ln.replace("move_params0 = ", ""))
 			elif ln.find("move_params1 = ") != -1:
 				plt.append(ln.replace("move_params1 = ", ""))
+			elif ln.find("move_params2 = ") != -1:
+				plt.append(ln.replace("move_params2 = ", ""))
 	mapp = Map(nm, bg, platforms = plats)
 	return mapp
 
@@ -162,7 +154,6 @@ class Ball:
 	def draw(self):
 		#pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
 		#pygame.draw.rect(screen, (255,255,255), self.rect, 0)
-
 		x,y = self.position
 		self.anim_incrementer_no_loop(self.ANIM_INC[self.anim_mode], self.ANIM_LOOP[self.anim_mode])
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.anim_mode] + "/Mario_"+ self.ANIM_NAME[self.anim_mode] + str(1+self.anim_ctr//self.ANIM_MOD[self.anim_mode]) + ".png")
@@ -278,7 +269,7 @@ class Ball:
 				#print(y)
 				#print(boundary_rect.top - self.rect.height)
 				if platform.move_params != None:
-					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - 7)
+					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - platform.move_params[2])
 				# self.speed *= -1
 				#self.velx = 0
 			else:
