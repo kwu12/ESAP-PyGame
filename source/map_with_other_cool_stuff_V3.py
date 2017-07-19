@@ -12,6 +12,10 @@ pygame.font.init()
 shoot = False
 map_name = "Battlefield"
 
+pygame.mixer.init()
+pygame.mixer.music.load('../resources/Music/stage_select.mp3')
+pygame.mixer.music.play(-1, 0.0)
+
 
 def greenify(surface):
 	surface = surface.copy()
@@ -249,16 +253,6 @@ class Platform:
 	def update(self, deltat):
 		if self.move_params != None:
 			speed = self.move_params[1]
-			# if self.x > self.target:
-			# 	self.dir = -1
-			# 	self.x = self.target
-			# elif self.x < self.target - self.move_params[0]:
-			# 	self.dir = 1
-			# 	self.x = self.target - self.move_params[0]
-			# elif self.dir == 1:
-			# 	self.move(self.x + speed / (self.target - self.x), self.y)
-			# elif self.dir == -1: #self.x > self.target - self.move_params[0] or self.x == self.target:
-			# 	self.move(self.x - speed, self.y)
 			vel = self.mvmnt_inc(deltat)
 			self.time += deltat #* speed 
 			self.move(self.x + vel, self.y)
@@ -327,10 +321,6 @@ class Ball:
 	def draw(self):
 		#pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
 		#pygame.draw.rect(screen, (255,255,255), self.rect, 0)
-		color = Color(146,85,85)
-		red = Color(255, 0 ,0)
-		dist = math.sqrt((red.r - color.r)**2 + (red.g - color.g)**2 + (red.b - color.b)**2)
-		print(dist)
 		self.health_bar.draw()
 		x,y = self.position
 		self.anim_incrementer_no_loop(self.ANIM_INC[self.anim_mode], self.ANIM_LOOP[self.anim_mode])
@@ -611,12 +601,8 @@ class Health:
 #460 x 171
 
 
-
-
-
 main_game = False
 main_game = game_intro(bypass = False)
-print(map_name)
 
 
 map1 = create_map_from_file(map_name)

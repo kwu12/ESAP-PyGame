@@ -130,9 +130,9 @@ class Ball:
 
 
 #460 x 171
-plat_image = "Stage1.jpg"
-plat_image1 = "Battlefield_Bottom.png"
-image = "SpaceBG.jpg"
+plat_image = "resources/Platforms/Battlefield_Bottom.png"
+plat_image1 = "../resources/Battlefield_Bottom.png"
+image = "resources/Backgrounds/BG_Dark.png"
 image1= "CastleBG.jpg"
 map1 = Map("Final Destination", image)
 plat1 = Platform((screen.get_width() / 2, screen.get_height() / 2), plat_image)
