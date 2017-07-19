@@ -139,10 +139,11 @@ class Ball:
 	FORWARD_TILT = 7
 	DOWN_TILT= 8
 	UP_B = 9
-	ANIM_NAME = ["Idle","Running","Jumping","Neutral_B","Jab","Double_Jump","Crouching","Forward_Tilt", "Down_Tilt", "Up_B"]
-	ANIM_INC = [20,30,14,11,8,13,0, 7, 8, 23]
-	ANIM_LOOP = [False, False, True, False, False, False, True, False, False, False]
-	ANIM_MOD = [5,4,7,3,2,2,1,1,1,4]
+	SIDE_B = 10
+	ANIM_NAME = ["Idle","Running","Jumping","Neutral_B","Jab","Double_Jump","Crouching","Forward_Tilt", "Down_Tilt", "Up_B","Side_B"]
+	ANIM_INC = [20,23,14,11,8,13,0, 7, 8, 23, 15]
+	ANIM_LOOP = [False, False, True, False, False, False, True, False, False, False, False]
+	ANIM_MOD = [5,3,7,3,2,2,1,1,1,4,4]
 	MAX_REVERSE_SPEED = -5
 
 
@@ -166,11 +167,9 @@ class Ball:
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.IDLE] + "/Mario_"+ self.ANIM_NAME[self.IDLE] +"1.png")
 		self.rect = self.get_rect()
 
-
 	def draw(self):
 		#pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
 		#pygame.draw.rect(screen, (255,255,255), self.rect, 0)
-
 		x,y = self.position
 		self.anim_incrementer_no_loop(self.ANIM_INC[self.anim_mode], self.ANIM_LOOP[self.anim_mode])
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.anim_mode] + "/Mario_"+ self.ANIM_NAME[self.anim_mode] + str(1+self.anim_ctr//self.ANIM_MOD[self.anim_mode]) + ".png")
@@ -319,6 +318,8 @@ class Ball:
 			
 
 	def anim_incrementer_no_loop(self, max, dont_loop):
+		if(self.anim_ctr==max):
+			hitbox.active = False
 		if(self.anim_ctr==max and self.touching_platform):
 			self.state_mode = self.IDLE
 		if(self.anim_ctr>max):
@@ -333,7 +334,7 @@ class Ball:
 		self.speed = -knockbackY
 
 class Projectile(pygame.sprite.Sprite):
-	def __init__(self, position, image, direction):
+	def __init__(self, position, image, direction, owner):
 		super().__init__()
 		self.position = position
 		self.xspeed = 15
@@ -342,14 +343,14 @@ class Projectile(pygame.sprite.Sprite):
 		self.rect.x, self.rect.y = position 
 		self.direction = direction
 		self.life_ctr = 0
-		
+		self.owner = owner
+
 	def update(self):
 		self.image = pygame.transform.rotate(self.image, 90)
 		screen.blit(self.image, self.rect)
 		self.life_ctr += 1
 		if(self.life_ctr>30):
 			self.kill()
-
 		if self.direction != "right":
 			self.rect.x -= self.xspeed
 		else:
@@ -369,13 +370,30 @@ class Hitbox:
 		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 
 	def draw(self):
-		pygame.draw.rect(screen, (0,0,255), self.rect, 0) 
- 
+		if(self.active):
+			pygame.draw.rect(screen, (255,0,0), self.rect, 0) 
+
+	def change_rect(self, xPos, yPos, width, height):
+		self.yPos = yPos
+		self.xPos = xPos
+		self.width = width
+		self.height = height
+
+	def change_kb(self, kbx, kby):
+		self.knockbackX = kbx
+		self.knockbackY = kby
+
 	def update(self):
-		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
+		if(self.owner.direction == "left"):
+			self.rect = Rect(self.owner.position[0]- self.xPos*2, self.yPos + self.owner.position[1], self.width, self.height)
+		else:
+			self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 		if self.rect.colliderect(ball1.rect) and self.active:
 			print("kb")
-			ball1.add_knockback(self.knockbackX, self.knockbackY)
+			if(self.owner.direction == "left"):
+				ball1.add_knockback(-self.knockbackX, self.knockbackY)
+			else:
+				ball1.add_knockback(self.knockbackX, self.knockbackY)
 			self.active = False
 
 #460 x 171
@@ -424,24 +442,31 @@ hitbox = Hitbox(0,0,10,10,10,10,30, ball)
 shot_list = pygame.sprite.Group()
 while 1:
 	deltat = clock.tick(30)
-	if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 2):
+	if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 1):
 		ball.state_mode = ball.IDLE
 		ball.anim_mode = ball.IDLE
+
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			sys.exit(0)
+
 		if event.type == USEREVENT + 1:
 			ball.fast_falling = False
+
 		if not hasattr(event, 'key'): continue
+
 		if event.type == KEYDOWN:
+
 			if event.key == K_UP and ball.jump_ctr == 1:
 				ball.jump()
+
 			if event.key == K_UP and ball.jump_ctr == 2:
 				ball.jump()
 
 		if event.type == KEYUP:
 			if (event.key == K_LEFT or event.key == K_RIGHT) and ball.touching_platform:
 				ball.anim_mode = ball.IDLE
+
 		if event.key == K_ESCAPE:
 			sys.exit(0)
 
@@ -450,10 +475,13 @@ while 1:
 		if(ball.touching_platform and ball.falling == True):
 			ball.state_mode = ball.IDLE
 			ball.falling = False
+
 		if(ball.state_mode == ball.IDLE):
 			ball.anim_mode = ball.IDLE
+
 		if pygame.key.get_pressed()[pygame.K_DOWN] and ball.falling == False:
 			ball.anim_mode = ball.CROUCHING
+
 		if pygame.key.get_pressed()[pygame.K_LEFT] and ball.falling == False:
 			ball.accx = -3
 			if(pygame.key.get_pressed()[pygame.K_UP] and ball.jump_ctr == 2):
@@ -477,6 +505,8 @@ while 1:
 		if(pygame.key.get_pressed()[pygame.K_p]):
 			if(ball.anim_mode!=ball.JAB):
 				ball.anim_ctr = 0
+				hitbox.change_rect(15,-10,30,25)
+				hitbox.change_kb(10,5)
 				hitbox.active = True
 			ball.accx = 0
 			ball.velx = 0
@@ -485,6 +515,9 @@ while 1:
 		if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_RIGHT]or pygame.key.get_pressed()[pygame.K_LEFT])):
 			if(ball.anim_mode!=ball.FORWARD_TILT):
 				ball.anim_ctr = 0
+				hitbox.change_rect(15,5,35,20)
+				hitbox.change_kb(35,7)
+				hitbox.active = True
 			ball.accx = 0
 			ball.velx = 0
 			ball.anim_mode = ball.FORWARD_TILT
@@ -492,15 +525,21 @@ while 1:
 		if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_DOWN])):
 			if(ball.anim_mode!=ball.DOWN_TILT):
 				ball.anim_ctr = 0
+				hitbox.change_rect(15,12,35,15)
+				hitbox.change_kb(7,14)
+				hitbox.active = True
 			ball.accx = 0
 			ball.velx = 0
 			ball.anim_mode = ball.DOWN_TILT
 			ball.state_mode = ball.DOWN_TILT
 	elif(ball.falling or ball.jump_ctr<2):
+
 		if pygame.key.get_pressed()[pygame.K_LEFT]:
 			ball.accx = -1.4
+
 		if pygame.key.get_pressed()[pygame.K_RIGHT]:
 			ball.accx = 1.4
+
 	if pygame.key.get_pressed()[pygame.K_DOWN]:
 		ball.fast_falling = True
 		ball.max_forward_speed *= 2
@@ -509,7 +548,7 @@ while 1:
 		if(ball.anim_mode!=ball.NEUTRAL_B):
 			ball.anim_ctr = 0
 			ball.anim_mode = ball.NEUTRAL_B
-			proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction)
+			proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, ball)
 			ball.state_mode = ball.NEUTRAL_B
 			# proj.rect.x = 
 			# proj.rect.y = 
@@ -519,6 +558,9 @@ while 1:
 	if pygame.key.get_pressed()[pygame.K_o] and pygame.key.get_pressed()[pygame.K_UP]:
 		if(ball.anim_mode!=ball.UP_B):
 			ball.anim_ctr = 0
+			hitbox.change_rect(5,0,25,25)
+			hitbox.change_kb(5,13)
+			hitbox.active = True
 			ball.speed = -17
 			if(ball.direction == "right"):
 				ball.velx = 10
@@ -526,6 +568,21 @@ while 1:
 				ball.velx = -10
 		ball.anim_mode = ball.UP_B
 		ball.state_mode = ball.UP_B
+
+	if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
+		if(ball.anim_mode!=ball.SIDE_B):
+			ball.anim_ctr = 0
+			hitbox.change_rect(15,0,25,25)
+			hitbox.change_kb(5,8)
+			hitbox.active = True
+			ball.speed = -17
+			ball.speed = -4
+			if(ball.direction == "right"):
+				ball.velx = 5
+			else:
+				ball.velx = -5
+		ball.anim_mode = ball.SIDE_B
+		ball.state_mode = ball.SIDE_B
 
 	for shot in shot_list:
 		shot.update()
