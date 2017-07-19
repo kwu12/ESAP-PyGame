@@ -1,25 +1,17 @@
 name = Battlefield
-base_image = BG_Dark.png
+base_image = MountainBG.jpg
 **PLATFORM**
-platformx = 0.5
-platformy = 0.5
-plat_image = Battlefield_Bottom1.png
+platformx = 0.25
+platformy = 0.75
+plat_image = Battlefield_Left.png
 fall_through = False
 move_params0 = None
 move_params1 = None
 move_params2 = None
 **PLATFORM**
-platformx = 0.375
-platformy = 0.375
+platformx = 0.75
+platformy = 0.5
 plat_image = Battlefield_Left.png
-fall_through = True
-move_params0 = None
-move_params1 = None
-move_params2 = None
-**PLATFORM**
-platformx = 0.625
-platformy = 0.375
-plat_image = Battlefield_Right.png
 fall_through = True
 move_params0 = None
 move_params1 = None
@@ -27,9 +19,10 @@ move_params2 = None
 **PLATFORM**
 platformx = 0.5
 platformy = 0.25
-plat_image = Battlefield_Top.png
+plat_image = Battlefield_Left.png
 fall_through = True
 move_params0 = None
 move_params1 = None
 move_params2 = None
 **PLATFORM**
+

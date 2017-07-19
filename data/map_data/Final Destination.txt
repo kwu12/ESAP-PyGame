@@ -7,4 +7,5 @@ plat_image = Final_Dest.png
 fall_through = False
 move_params0 = None
 move_params1 = None
+move_params2 = None
 **PLATFORM**
