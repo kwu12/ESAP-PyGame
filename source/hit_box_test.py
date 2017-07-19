@@ -3,7 +3,7 @@ from pygame.locals import *
 screen = pygame.display.set_mode((1024, 576))
 clock = pygame.time.Clock()
 
-class Ball:
+class Dummy:
 	def __init__(self):
 		self.radius = 50
 		self.x = 512
@@ -17,6 +17,7 @@ class Ball:
 		self.xVel*=0.9
 		self.yVel*=0.9
 		pygame.draw.circle(screen, (255,0,0), (int(self.x), int(self.y)), self.radius, 0) 
+		self.rect = Rect(self.x,self.y,self.radius,self.radius)
 
 	def add_knockback(self, knockbackX, knockbackY):
 		self.xVel = knockbackX
@@ -36,7 +37,7 @@ class Hitbox:
 
 	def draw(self):
 		pygame.draw.rect(screen, (0,0,255), self.rect, 0) 
-
+ 
 	def update(self):
 		self.rect = Rect(self.xPos, self.yPos, self.width, self.height)
 		if self.rect.colliderect(ball.rect) and self.active:
@@ -63,4 +64,3 @@ while 1:
 	hitbox.update()
 	pygame.display.flip()
 	pygame.display.update()
-
