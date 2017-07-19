@@ -1,0 +1,10 @@
+name = Final Destination
+base_image = BG_SPACE.png
+**PLATFORM**
+platformx = 0.5
+platformy = 0.5
+plat_image = Final_Dest.png
+fall_through = False
+move_params0 = None
+move_params1 = None
+**PLATFORM**

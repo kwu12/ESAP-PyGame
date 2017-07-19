@@ -1,0 +1,31 @@
+name = Battlefield
+base_image = BG_Dark.png
+**PLATFORM**
+platformx = 0.5
+platformy = 0.5
+plat_image = Battlefield_Bottom1.png
+fall_through = False
+move_params0 = None
+move_params1 = None
+**PLATFORM**
+platformx = 0.375
+platformy = 0.375
+plat_image = Battlefield_Left.png
+fall_through = True
+move_params0 = None
+move_params1 = None
+**PLATFORM**
+platformx = 0.625
+platformy = 0.375
+plat_image = Battlefield_Right.png
+fall_through = True
+move_params0 = None
+move_params1 = None
+**PLATFORM**
+platformx = 0.5
+platformy = 0.25
+plat_image = Battlefield_Top.png
+fall_through = True
+move_params0 = 200
+move_params1 = 3
+**PLATFORM**
