@@ -20,6 +20,8 @@ class Platform:
 
 	def draw(self):
 		screen.blit(self.image, self.rect)
+		# if self.move_params != None:
+		# 	pygame.draw.rect(screen, (255,255,255), Rect(self.target - self.move_params[0], self.y, self.move_params[0], 10))
 		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
 		# for i in range(len(self.boundaries)):
 		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
@@ -44,7 +46,7 @@ class Platform:
 	def mvmnt_inc(self, deltat):
 		#return (self.target - self.move_params[0] / 2) + self.move_params[0] / 2* math.sin(self.time * math.pi / (2 * self.target / 2))
 		speed = self.move_params[1]
-		mod = (math.pi * self.move_params[0] / 2) / speed
+		mod = (math.pi * self.move_params[0]) / (2 * speed)
 		return deltat / 1000 * mod * math.cos(math.pi * self.time / (1000 * speed))
  
 	def update(self, deltat):
@@ -226,6 +228,7 @@ class Ball:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
+			self.accx = 0
 
 
 		bools = []
