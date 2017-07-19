@@ -10,7 +10,7 @@ pygame.display.set_caption("Smeesh")
 clock = pygame.time.Clock()
 pygame.font.init()
 shoot = False
-map_name = "Battlefield"
+map_name = "Ice"
 
 pygame.mixer.init()
 pygame.mixer.music.load('../resources/Music/stage_select.mp3')
@@ -225,15 +225,16 @@ class Platform:
 		screen.blit(self.image, self.rect)
 		# if self.move_params != None:
 		# 	pygame.draw.rect(screen, (255,255,255), Rect(self.target - self.move_params[0], self.y, self.move_params[0], 10))
-		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
-		# for i in range(len(self.boundaries)):
-		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
+		colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		for i in range(len(self.boundaries)):
+			pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
 
 	def move(self, x, y):
 		self.x = x
 		self.y = y
 		image_rect = self.image.get_rect()
 		num = image_rect.width / 25
+		print(num)
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		#legacy collision boxes
 		# boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
@@ -607,7 +608,7 @@ class Health:
 
 
 main_game = False
-main_game = game_intro(bypass = False)
+main_game = game_intro(bypass = True)
 
 
 map1 = create_map_from_file(map_name)
