@@ -22,8 +22,52 @@ class Button:
 	def action(self):
 		print(self.position)
 
+def game_end():
+
+	end = pygame.font.Font(None, 80)
+	endfont = end.render("Game Over! PLACEHOLDER wins", True, (0, 0, 0))
+	size = end.size("Game OverPLACEHOLDER wins")
+	screen.blit(endfont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//3) - (size[1]//2)))
+
+	BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
+
+	b1 = Button((212, 250), "../resources/GUI/restart-button.png")
+
+	button_list = [b1]
+
+	while 1:
+		deltat = clock.tick(30)
+		mouse = pygame.mouse.get_pos()
+
+		for event in pygame.event.get():
+			if event.type == MOUSEBUTTONDOWN:
+				for button in button_list:
+					if button.rect.collidepoint(mouse):
+						button.action()
+			if event.type == MOUSEMOTION:
+				for button in button_list:
+					if button.rect.collidepoint(mouse):
+						button.hover = True
+					else:
+						button.hover = False
+			if not hasattr(event, 'key'): continue
+			if event.key == K_ESCAPE:
+				sys.exit(0)
+
+		mouse = pygame.mouse.get_pos()
+
+
+		pygame.display.update()
+		screen.blit(BG, (0,0))
+		screen.blit(endfont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//3) - (size[1]//2)))
+		#screen.blit(battlefield, battlefieldrect)
+		#screen.blit(Final, Finalrect)
+		#screen.blit(Brawl, Brawlrect)
+		for button in button_list:
+			button.draw()
 
 def game_intro():
+
 	title = pygame.font.Font(None, 80)
 	titlefont = title.render("Pick a stage!", True, (0, 0, 0))
 	size = title.size("Pick a stage!")
@@ -94,4 +138,4 @@ def game_intro():
 
 		#pygame.display.flip()
 
-game_intro()
+game_end()
