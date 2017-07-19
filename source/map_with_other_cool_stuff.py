@@ -45,8 +45,8 @@ class Platform:
 		#return (self.target - self.move_params[0] / 2) + self.move_params[0] / 2* math.sin(self.time * math.pi / (2 * self.target / 2))
 		speed = self.move_params[1]
 		mod = (math.pi * self.move_params[0] / 2) / speed
-		return mod * math.cos(math.pi * self.time / (1000 * speed))
-
+		return deltat / 1000 * mod * math.cos(math.pi * self.time / (1000 * speed))
+ 
 	def update(self, deltat):
 		if self.move_params != None:
 			speed = self.move_params[1]
@@ -62,7 +62,7 @@ class Platform:
 			# 	self.move(self.x - speed, self.y)
 			vel = self.mvmnt_inc(deltat)
 			self.time += deltat #* speed 
-			self.move(self.x + deltat / 1000 * vel, self.y)
+			self.move(self.x + vel, self.y)
 
 
 
@@ -70,7 +70,7 @@ class Map:
 	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
 	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom1.png"),
 	Platform((3 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Left.png", fall_through = True), Platform((5 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Right.png", fall_through = True),
-	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True, move_params = [200, 2])))}
+	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True, move_params = [200, 3])))}
 	def __init__(self, name, background_image = "default"):
 		self.name = name
 		self.platforms = []
@@ -245,7 +245,7 @@ class Ball:
 				#print(y)
 				#print(boundary_rect.top - self.rect.height)
 				if platform.move_params != None:
-					self.move(x + deltat / 1000 * platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - 7)
+					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - 7)
 				# self.speed *= -1
 				#self.velx = 0
 			else:
