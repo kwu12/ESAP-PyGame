@@ -179,6 +179,8 @@ def create_map_from_file(name):
 				nm = ln.replace("name = ", "")
 			elif ln.find("base_image = ") != -1:
 				bg = "../resources/Backgrounds/" + ln.replace("base_image = ", "")
+			elif ln.find("song = ") != -1:
+				sng = "../resources/Music/" + ln.replace("song = ", "")
 			elif ln.find("*PLATFORM*") != -1:
 				if len(plt) != 0:
 					if plt[4] == "None":
@@ -202,7 +204,7 @@ def create_map_from_file(name):
 				plt.append(ln.replace("move_params1 = ", ""))
 			elif ln.find("move_params2 = ") != -1:
 				plt.append(ln.replace("move_params2 = ", ""))
-	mapp = Map(nm, bg, platforms = plats)
+	mapp = Map(nm, bg, sng, platforms = plats)
 	return mapp
 class Platform:
 
@@ -258,10 +260,13 @@ class Platform:
 			self.move(self.x + vel, self.y)
 
 class Map:
-	def __init__(self, name, background_image, platforms = []):
+	def __init__(self, name, background_image, song, platforms = []):
 		self.platforms = platforms
 		self.name = name
+		self.song = song
 		self.background_image = pygame.image.load(background_image)
+		pygame.mixer.music.load(self.song)
+		pygame.mixer.music.play(-1, 0.0)
 
 		
 	def draw(self):

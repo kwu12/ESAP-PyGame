@@ -1,5 +1,6 @@
 name = Final Destination
 base_image = BG_SPACE.png
+song = FinalDest.mp3
 **PLATFORM**
 platformx = 0.5
 platformy = 0.5

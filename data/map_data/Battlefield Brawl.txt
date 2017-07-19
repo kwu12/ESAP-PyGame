@@ -1,5 +1,6 @@
 name = Battlefield
 base_image = CastleBG.jpg
+song = BattlefieldB.mp3
 **PLATFORM**
 platformx = 0.5
 platformy = 0.5

@@ -1,5 +1,6 @@
 name = Battlefield
 base_image = MountainBG.jpg
+song = MuteCity.mp3
 **PLATFORM**
 platformx = 0.25
 platformy = 0.75
