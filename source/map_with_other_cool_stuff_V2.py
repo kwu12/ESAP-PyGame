@@ -7,6 +7,45 @@ from pygame.locals import *
 screen = pygame.display.set_mode((1024, 576))
 clock = pygame.time.Clock()
 shoot = False
+def create_map_from_file(name):
+	plats = []
+	plt = []
+	with open("../data/map_data/" + (name + ".txt"), "r") as f:
+		total_lines = f.readlines()
+		total_lines = [ln[:-1] for ln in total_lines]
+		for ln in total_lines:
+			#ln = f.readLine()
+			if ln == "":
+				continue
+			elif ln.find("name = ") != -1:
+				nm = ln.replace("name = ", "")
+			elif ln.find("base_image = ") != -1:
+				bg = "../resources/Backgrounds/" + ln.replace("base_image = ", "")
+			elif ln.find("*PLATFORM*") != -1:
+				if len(plt) != 0:
+					if plt[4] == "None":
+						mp = None
+					else:
+						mp = (float(plt[4]), float(plt[5]), float(plt[6]))
+					ft = plt[3] == "True"
+					plats.append(Platform((plt[0],plt[1]), plt[2], fall_through = ft, move_params = mp))
+				plt = []
+			elif ln.find("platformx = ") != -1:
+				plt.append(screen.get_width() * float(ln.replace("platformx = ", "")))
+			elif ln.find("platformy = ") != -1:
+				plt.append(screen.get_height() * float(ln.replace("platformy = ", "")))
+			elif ln.find("plat_image = ") != -1:
+				plt.append("../resources/Platforms/" + (ln.replace("plat_image = ", "")))
+			elif ln.find("fall_through = ") != -1:
+				plt.append((ln.replace("fall_through = ", "")))
+			elif ln.find("move_params0 = ") != -1:
+				plt.append(ln.replace("move_params0 = ", ""))
+			elif ln.find("move_params1 = ") != -1:
+				plt.append(ln.replace("move_params1 = ", ""))
+			elif ln.find("move_params2 = ") != -1:
+				plt.append(ln.replace("move_params2 = ", ""))
+	mapp = Map(nm, bg, platforms = plats)
+	return mapp
 class Platform:
 
 	def __init__(self, position, image, fall_through = False, move_params = None):
@@ -71,16 +110,9 @@ class Platform:
 			self.move(self.x + vel, self.y)
 
 class Map:
-	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
-	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom1.png"),
-	Platform((3 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Left.png", fall_through = True), Platform((5 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Right.png", fall_through = True),
-	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True, move_params = [200, 3])))}
-	def __init__(self, name, background_image = "default"):
+	def __init__(self, name, background_image, platforms = []):
+		self.platforms = platforms
 		self.name = name
-		self.platforms = []
-		if background_image == "default":
-			background_image = self.MAP_MASTER[name][0]
-			self.platforms.extend(self.MAP_MASTER[name][1])
 		self.background_image = pygame.image.load(background_image)
 		
 	def draw(self):
@@ -92,7 +124,6 @@ class Map:
 	def update(self, deltat):
 		for plat in self.platforms:
 			plat.update(deltat)
-
 class Ball:
 	ACCELERATION = 0.5
 	max_forward_speed = 7.8
@@ -351,7 +382,7 @@ class Hitbox:
 
 plat_image1 = "../resources/Platforms/Battlefield_Top.png"
 image1 = "../resources/Backgrounds/CastleBG.jpg"
-map1 = Map("Battlefield")
+map1 = create_map_from_file("Battlefield")
 #map1 = Map("Final Destination")
 #pygame.sprite.spritecollide(, surface_group, False)
 ball = Ball((screen.get_width() / 2, 100), map1.platforms)
