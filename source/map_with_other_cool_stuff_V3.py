@@ -6,9 +6,161 @@ import pygame, math, sys, random, os
 from pygame.locals import *
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (100,50)
 screen = pygame.display.set_mode((1024, 576))
+pygame.display.set_caption("Smeesh")
 clock = pygame.time.Clock()
 pygame.font.init()
 shoot = False
+map_name = "Battlefield"
+
+
+def greenify(surface):
+	surface = surface.copy()
+	for x in range(surface.get_size()[0]):
+		for y in range(surface.get_size()[1]):
+			color = surface.get_at([x, y])
+			red = Color(255, 0 ,0)
+			dist = math.sqrt((red.r - color.r)**2 + (red.g - color.g)**2 + (red.b - color.b)**2)
+			#color2 = pygame.color.Color(r,g,b,0)
+			#0-30 330-360
+			if dist <= 170:
+				if color.r - 80 < 0:
+					color.r = 0
+				else:
+					color.r -= 80
+				if color.g + 80 > 255:
+					color.g = 255
+				else:
+					color.g += 80
+				surface.set_at([x, y], color)
+	return surface
+
+
+class Button:
+
+	def __init__(self, position, image, name):
+		self.position = position
+		self.image = pygame.image.load(image)
+		self.rect = Rect(position[0], position[1], self.image.get_rect().width, self.image.get_rect().height)
+		self.hover = False
+		self.name = name
+
+	def draw(self):
+		screen.blit(self.image, self.rect)
+		if self.hover:
+			pygame.draw.rect(screen, (255, 0, 0), (self.rect.left - 3, self.rect.top - 3, self.rect.width + 6, self.rect.height + 6), 1)
+
+	def action(self):
+		global map_name
+		map_name = self.name
+
+
+def game_intro(bypass = False):
+
+	if not bypass:
+		done = False
+
+		title = pygame.font.Font(None, 80)
+		titlefont = title.render("Pick a stage!", True, (0, 0, 0))
+		size = title.size("Pick a stage!")
+		screen.blit(titlefont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//2) - (size[1]//2)))
+
+		BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
+
+
+		battlefield = pygame.image.load("../resources/GUI/Battlefield_Bottom_Icon.png")
+		battlefieldrect = battlefield.get_rect()
+		battlefieldrect.x = (screen.get_width()//3 - battlefieldrect.width)
+		battlefieldrect.y = (2 * screen.get_height()//3 - battlefieldrect.height//2)
+
+		Final = pygame.image.load("../resources/GUI/Final_Dest_Icon.png")
+		Finalrect = Final.get_rect()
+		Finalrect.x = (2 * screen.get_width()//3)
+		Finalrect.y = (2 * screen.get_height()//3 - Finalrect.height//2)
+
+		Brawl = pygame.image.load("../resources/GUI/Battlefield_Stage_Icon.png")
+		Brawlrect = Brawl.get_rect()
+		Brawlrect.x = (screen.get_width()//3 - Brawlrect.width)
+		Brawlrect.y = (screen.get_height()//3 - Brawlrect.height//2)
+
+		b1 = Button((100, 100), "../resources/GUI/Battlefield_Stage_Icon.png", "Battlefield Brawl")
+		b2 = Button((100, 350), "../resources/GUI/Battlefield_Bottom_Icon.png", "Battlefield")
+		b3 = Button((725, 350), "../resources/GUI/Final_Dest_Icon.png", "Final Destination")
+		button_list = [b1, b2, b3]
+
+
+		while not done:
+			deltat = clock.tick(30)
+			mouse = pygame.mouse.get_pos()
+
+			for event in pygame.event.get():
+				if event.type == MOUSEBUTTONDOWN:
+					for button in button_list:
+						if button.rect.collidepoint(mouse):
+							button.action()
+							done = True
+				if event.type == MOUSEMOTION:
+					for button in button_list:
+						if button.rect.collidepoint(mouse):
+							button.hover = True
+						else:
+							button.hover = False
+				if not hasattr(event, 'key'): continue
+				if event.key == K_ESCAPE:
+					sys.exit(0)
+
+			mouse = pygame.mouse.get_pos()
+			pygame.display.update()
+			screen.blit(BG, (0,0))
+			screen.blit(titlefont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//2) - (size[1]//2)))
+			for button in button_list:
+				button.draw()
+
+	return True
+
+def game_end():
+
+	end = pygame.font.Font(None, 80)
+	endfont = end.render("Game Over! PLACEHOLDER wins", True, (0, 0, 0))
+	size = end.size("Game OverPLACEHOLDER wins")
+	screen.blit(endfont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//3) - (size[1]//2)))
+
+	BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
+
+	b1 = Button((212, 250), "../resources/GUI/restart-button.png")
+
+	button_list = [b1]
+
+	while 1:
+		deltat = clock.tick(30)
+		mouse = pygame.mouse.get_pos()
+
+		for event in pygame.event.get():
+			if event.type == MOUSEBUTTONDOWN:
+				for button in button_list:
+					if button.rect.collidepoint(mouse):
+						button.action()
+			if event.type == MOUSEMOTION:
+				for button in button_list:
+					if button.rect.collidepoint(mouse):
+						button.hover = True
+					else:
+						button.hover = False
+			if not hasattr(event, 'key'): continue
+			if event.key == K_ESCAPE:
+				sys.exit(0)
+
+		mouse = pygame.mouse.get_pos()
+
+
+		pygame.display.update()
+		screen.blit(BG, (0,0))
+		screen.blit(endfont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//3) - (size[1]//2)))
+		#screen.blit(battlefield, battlefieldrect)
+		#screen.blit(Final, Finalrect)
+		#screen.blit(Brawl, Brawlrect)
+		for button in button_list:
+			button.draw()
+
 def create_map_from_file(name):
 	plats = []
 	plt = []
@@ -116,9 +268,9 @@ class Map:
 		self.platforms = platforms
 		self.name = name
 		self.background_image = pygame.image.load(background_image)
+
 		
 	def draw(self):
-		pygame.display.set_caption(self.name)
 		screen.blit(self.background_image, (0,0))
 		for plat in self.platforms:
 			plat.draw()
@@ -148,8 +300,9 @@ class Ball:
 	MAX_REVERSE_SPEED = -5
 
 
-	def __init__(self, position, health_bar, platforms = []):
+	def __init__(self, position, health_bar, luigi, platforms = []):
 		#pygame.sprite.Sprite.__init__(self)
+		self.luigi = luigi
 		self.health_bar = health_bar
 		self.position = position
 		self.speed = 0
@@ -167,16 +320,23 @@ class Ball:
 		self.direction = "right"
 		self.anim_ctr = 0
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.IDLE] + "/Mario_"+ self.ANIM_NAME[self.IDLE] +"1.png")
+		self.image = pygame.surface.Surface((self.image.get_rect().width, self.image.get_rect().height), SRCALPHA, self.image)
 		self.rect = self.get_rect()
 
 
 	def draw(self):
 		#pygame.draw.circle(screen, (255, 0, 0), (int(self.position[0]), int(self.position[1])), self.radius, 0)
 		#pygame.draw.rect(screen, (255,255,255), self.rect, 0)
+		color = Color(146,85,85)
+		red = Color(255, 0 ,0)
+		dist = math.sqrt((red.r - color.r)**2 + (red.g - color.g)**2 + (red.b - color.b)**2)
+		print(dist)
 		self.health_bar.draw()
 		x,y = self.position
 		self.anim_incrementer_no_loop(self.ANIM_INC[self.anim_mode], self.ANIM_LOOP[self.anim_mode])
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.anim_mode] + "/Mario_"+ self.ANIM_NAME[self.anim_mode] + str(1+self.anim_ctr//self.ANIM_MOD[self.anim_mode]) + ".png")
+		
+		
 		# if(self.falling):
 		# 	self.image = pygame.image.load("../resources/Mario/Mario_Jumping/Mario_Jumping5.png")
 		# elif(self.anim_mode == self.JUMPING):
@@ -190,10 +350,27 @@ class Ball:
 		# 	self.image = pygame.image.load("../resources/Mario/Mario_Idle/Mario_Idle"+str(1+self.anim_ctr//5)+".png")
 		if(self.falling and not(self.touching_platform)):
 			self.image = pygame.image.load("../resources/Mario/Mario_Double_Jump/Mario_Double_Jump7.png")
+			
 		if(self.direction == "left"):
 			self.image = pygame.transform.flip(self.image,True,False)
+			
 		#self.rect = self.get_rect()
+
+		# n = self.image.convert_alpha()
+		# # red at 50%
+		# n.fill(()
+		# self.image.blit(n, (0,0))
+		#self.image = colorize(self.image, (172,255,47))
+		#self.image.fill((172,255,47), special_flags=BLEND_RGB_MULT)
+		#self.image = pygame.surface.Surface((self.image.get_rect().width, self.image.get_rect().height), SRCALPHA, self.image)
+		# cl = Color(100, 100, 100, 0)
+		# cl.hsva = (100, 82, 100, 0)
+		# self.image.fill(cl, self.rect, BLEND_RGBA_ADD)
+		#print(self.image.get_pallete())
+		if self.luigi:
+			self.image = greenify(self.image)
 		screen.blit(self.image, self.position)
+
 
 	def add_platforms(self, platforms):
 		self.platforms.extend(platforms)
@@ -304,7 +481,7 @@ class Ball:
 				#print(y)
 				#print(boundary_rect.top - self.rect.height)
 				if platform.move_params != None:
-					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - 7)
+					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - platform.move_params[2])
 				# self.speed *= -1
 				#self.velx = 0
 			else:
@@ -347,7 +524,7 @@ class Ball:
 		self.speed = -knockbackY
 
 class Projectile(pygame.sprite.Sprite):
-	def __init__(self, position, image, direction):
+	def __init__(self, position, image, direction, luigi = False):
 		super().__init__()
 		self.position = position
 		self.xspeed = 15
@@ -356,9 +533,11 @@ class Projectile(pygame.sprite.Sprite):
 		self.rect.x, self.rect.y = position 
 		self.direction = direction
 		self.life_ctr = 0
+		self.luigi = luigi
 		
 	def update(self):
 		self.image = pygame.transform.rotate(self.image, 90)
+		self.image = greenify(self.image)
 		screen.blit(self.image, self.rect)
 		self.life_ctr += 1
 		if(self.life_ctr>30):
@@ -383,7 +562,8 @@ class Hitbox:
 		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 
 	def draw(self):
-		pygame.draw.rect(screen, (0,0,255), self.rect, 0) 
+		pass
+		#pygame.draw.rect(screen, (0,0,255), self.rect, 0) 
  
 	def update(self):
 		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
@@ -406,8 +586,10 @@ class Health:
 
 	def draw(self):
 		#print("true")
+		pygame.draw.rect(screen, (0, 0, 0), (self.position[0], self.position[1] - 30, self.size, 50))
 		pygame.draw.rect(screen, self.color, Rect(self.position, (self.size * (self.hp / 100), 20)), 0)
 		title = pygame.font.Font(None, 20)
+		#title = pygame.font.SysFont("Arial", 20, bold=False, italic=False) 
 		titlefont = title.render(self.text, True, (255, 255, 255))
 		size = title.size(self.text)
 		screen.blit(titlefont, (self.position[0] + (self.size - size[0]) / 2, self.position[1] - 20))
@@ -427,19 +609,28 @@ class Health:
 		# pygame.bar.inflate_ip(self.positiondecrease, -25)
 
 #460 x 171
-map1 = create_map_from_file("Battlefield")
+
+
+
+
+
+main_game = False
+main_game = game_intro(bypass = False)
+print(map_name)
+
+
+map1 = create_map_from_file(map_name)
 #map1 = Map("Final Destination")
 #pygame.sprite.spritecollide(, surface_group, False)
 
 hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ")
 hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ")
-ball = Ball((screen.get_width() / 2, 100), hbar, map1.platforms)
-ball1 = Ball((screen.get_width() / 2, 100), hbar2, map1.platforms)
+ball = Ball((screen.get_width() / 2, 100), hbar, True, map1.platforms)
+ball1 = Ball((screen.get_width() / 2, 100), hbar2, False, map1.platforms)
 hitbox = Hitbox(0,0,10,10,10,10,30, ball)
-ball.draw()
-
 shot_list = pygame.sprite.Group()
-while 1:
+
+while main_game:
 	deltat = clock.tick(30)
 	if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 2):
 		ball.state_mode = ball.IDLE
@@ -526,7 +717,7 @@ while 1:
 		if(ball.anim_mode!=ball.NEUTRAL_B):
 			ball.anim_ctr = 0
 			ball.anim_mode = ball.NEUTRAL_B
-			proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction)
+			proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, luigi = True)
 			ball.state_mode = ball.NEUTRAL_B
 			# proj.rect.x = 
 			# proj.rect.y = 
