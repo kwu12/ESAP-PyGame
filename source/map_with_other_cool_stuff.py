@@ -13,15 +13,15 @@ class Platform:
 		self.y = position[1]
 		num = image_rect.width / 25
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
+		#legacy collision boxes
 		# boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
 		# boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
 		# boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		# boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
-
 		boundary_top = Rect(self.rect.left + num, self.rect.top + num, self.rect.width - 2 * num, num)
-		boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
-		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
-		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * num, num, self.rect.height - 3 * num)
+		boundary_bottom = Rect(self.rect.left + 2 * num, self.rect.bottom - num, self.rect.width - 4 * num, num)
+		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
 		self.fall_through = fall_through 
 
@@ -29,8 +29,7 @@ class Platform:
 		screen.blit(self.image, self.rect)
 		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
 		# for i in range(len(self.boundaries)):
-		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center 
-#TODO CHANGE BOTTOM AND SIDES BOUDNAY
+		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
 
 class Map:
 	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
@@ -50,7 +49,6 @@ class Map:
 		screen.blit(self.background_image, (0,0))
 		for plat in self.platforms:
 			plat.draw()
-		#self.screen
 
 class Ball:
 	ACCELERATION = 0.5
@@ -66,8 +64,6 @@ class Ball:
 	ANIM_INC = [20,30,14,19,18]
 	ANIM_LOOP = [False, False, True, False, False]
 	ANIM_MOD = [5,4,7,5,6]
-	#ACCELERATION = 0.5
-	#MAX_FORWARD_SPEED = 1
 	MAX_REVERSE_SPEED = -5
 
 
@@ -136,14 +132,14 @@ class Ball:
 		x, y = self.position
 		if self.jump_ctr == 2:
 			#self.move(x, y - 30)
-			self.speed = -13
+			self.speed = -14
 			self.jump_ctr -= 1
 			self.anim_mode = self.JUMPING
 			self.state_mode = self.JUMPING
 			self.falling = False
 			self.anim_ctr = 0
-		elif self.jump_ctr == 1:
-			self.speed = -8
+		elif self.jump_ctr == 1 and self.speed >= -4: 
+			self.speed = -12
 			self.jump_ctr -= 1
 
 
@@ -186,10 +182,6 @@ class Ball:
 			self.speed = self.max_forward_speed
 		self.max_forward_speed = 7.8
 		#self.move(x, y)
-
-		# if len(pygame.sprite.spritecollide(self, self.platforms, False)) > 0:
-		# print(self.rect.left, self.rect.top)
-		# print(self.platforms[0].boundary_rect.left, self.platforms[0].boundary_rect.top)
 		
 		if y >= 570:
 			self.move(screen.get_width() / 2, 0)
@@ -217,7 +209,7 @@ class Ball:
 				#print("Here")
 				if self.rect.colliderect(platform.boundaries[1]):
 					self.speed = 0 
-					self.move(x, platform.boundaries[1].bottom + self.rect.height)		
+					self.move(x, platform.boundaries[1].bottom) #+ self.rect.height)		
 					#self.velx = 0
 				elif self.rect.colliderect(platform.boundaries[2]):
 					#self.speed = 0 
@@ -318,6 +310,8 @@ while 1:
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			sys.exit(0)
+		if event.type == USEREVENT + 1:
+			ball.fast_falling = False
 		if not hasattr(event, 'key'): continue
 		if event.type == KEYDOWN:
 			if event.key == K_UP and ball.jump_ctr == 1:
@@ -380,8 +374,7 @@ while 1:
 		if pygame.key.get_pressed()[pygame.K_DOWN]:
 			ball.fast_falling = True
 			ball.max_forward_speed *= 2
-		else:
-			ball.fast_falling = False
+			pygame.time.set_timer(USEREVENT + 1, 500)
 
 	for shot in shot_list:
 		shot.update()
