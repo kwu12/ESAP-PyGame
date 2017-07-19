@@ -5,12 +5,29 @@ clock = pygame.time.Clock()
 
 class Platform:
 
-	def __init__(self, position, image, fall_through = False):
+	def __init__(self, position, image, fall_through = False, move_params = None):
 		#pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load(image)
-		image_rect = self.image.get_rect()
 		self.x = position[0]
 		self.y = position[1]
+		self.fall_through = fall_through 
+		self.move(self.x, self. y)
+		self.move_params = move_params
+		self.dir = 1
+		if self.move_params != None:
+			self.target = self.x + self.move_params[0] / 2
+		self.time = 0
+
+	def draw(self):
+		screen.blit(self.image, self.rect)
+		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		# for i in range(len(self.boundaries)):
+		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
+
+	def move(self, x, y):
+		self.x = x
+		self.y = y
+		image_rect = self.image.get_rect()
 		num = image_rect.width / 25
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		#legacy collision boxes
@@ -23,19 +40,37 @@ class Platform:
 		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
-		self.fall_through = fall_through 
 
-	def draw(self):
-		screen.blit(self.image, self.rect)
-		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
-		# for i in range(len(self.boundaries)):
-		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
+	def mvmnt_inc(self, deltat):
+		#return (self.target - self.move_params[0] / 2) + self.move_params[0] / 2* math.sin(self.time * math.pi / (2 * self.target / 2))
+		speed = self.move_params[1]
+		mod = (math.pi * self.move_params[0] / 2) / speed
+		return mod * math.cos(math.pi * self.time / (1000 * speed))
+
+	def update(self, deltat):
+		if self.move_params != None:
+			speed = self.move_params[1]
+			# if self.x > self.target:
+			# 	self.dir = -1
+			# 	self.x = self.target
+			# elif self.x < self.target - self.move_params[0]:
+			# 	self.dir = 1
+			# 	self.x = self.target - self.move_params[0]
+			# elif self.dir == 1:
+			# 	self.move(self.x + speed / (self.target - self.x), self.y)
+			# elif self.dir == -1: #self.x > self.target - self.move_params[0] or self.x == self.target:
+			# 	self.move(self.x - speed, self.y)
+			vel = self.mvmnt_inc(deltat)
+			self.time += deltat #* speed 
+			self.move(self.x + deltat / 1000 * vel, self.y)
+
+
 
 class Map:
 	MAP_MASTER = {"Final Destination": ("../resources/Backgrounds/BG_SPACE.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Final_Dest.png"),)),
 	"Battlefield": ("../resources/Backgrounds/BG_Dark.png", (Platform((screen.get_width() / 2, screen.get_height() / 2), "../resources/Platforms/Battlefield_Bottom1.png"),
 	Platform((3 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Left.png", fall_through = True), Platform((5 * screen.get_width() / 8, 3 * screen.get_height() / 8), "../resources/Platforms/Battlefield_Right.png", fall_through = True),
-	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True)))}
+	Platform((screen.get_width() / 2, 1 * screen.get_height() / 4), "../resources/Platforms/Battlefield_Top.png", fall_through = True, move_params = [200, 2])))}
 	def __init__(self, name, background_image = "default"):
 		self.name = name
 		self.platforms = []
@@ -49,6 +84,10 @@ class Map:
 		screen.blit(self.background_image, (0,0))
 		for plat in self.platforms:
 			plat.draw()
+
+	def update(self, deltat):
+		for plat in self.platforms:
+			plat.update(deltat)
 
 class Ball:
 	ACCELERATION = 0.5
@@ -192,19 +231,26 @@ class Ball:
 		bools = []
 		for platform in self.platforms:
 			boundary_rect = platform.boundaries[0]
+
 			if self.rect.colliderect(boundary_rect) and self.speed >= 0 and (not self.fast_falling or not platform.fall_through): #and not platform.fall_through: 
 				#if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
 				#print(2)
 				# print(self.rect.bottom)
 				# print(boundary_rect.top)
+
 				self.speed = 0 
 				self.move(x, boundary_rect.top - self.rect.height) 		
 				self.jump_ctr = 2	
 				bools.append(True)
+				#print(y)
+				#print(boundary_rect.top - self.rect.height)
+				if platform.move_params != None:
+					self.move(x + deltat / 1000 * platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - 7)
 				# self.speed *= -1
 				#self.velx = 0
 			else:
 				bools.append(False)
+			x, y = self.position
 			if not self.rect.colliderect(boundary_rect) and not platform.fall_through:
 				#print("Here")
 				if self.rect.colliderect(platform.boundaries[1]):
@@ -371,10 +417,10 @@ while 1:
 			ball.accx = -1.4
 		if pygame.key.get_pressed()[pygame.K_RIGHT]:
 			ball.accx = 1.4
-		if pygame.key.get_pressed()[pygame.K_DOWN]:
-			ball.fast_falling = True
-			ball.max_forward_speed *= 2
-			pygame.time.set_timer(USEREVENT + 1, 500)
+	if pygame.key.get_pressed()[pygame.K_DOWN]:
+		ball.fast_falling = True
+		ball.max_forward_speed *= 2
+		pygame.time.set_timer(USEREVENT + 1, 250)
 
 	for shot in shot_list:
 		shot.update()
@@ -384,7 +430,9 @@ while 1:
 		# 	#all_sprites.remove(shot)
 		# 	shot_list.remove(shot)
 		# 	shoot = False
+
 	pygame.display.update()
+	map1.update(deltat)
 	map1.draw()
 	ball.update(deltat)
 	ball.draw()	
