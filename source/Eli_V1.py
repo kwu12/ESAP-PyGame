@@ -145,7 +145,7 @@ class Ball:
 		self.anim_incrementer_no_loop(self.ANIM_INC[self.anim_mode], self.ANIM_LOOP[self.anim_mode])
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.anim_mode] + "/Mario_"+ self.ANIM_NAME[self.anim_mode] + str(1+self.anim_ctr//self.ANIM_MOD[self.anim_mode]) + ".png")
 		if(self.falling and not(self.touching_platform)):
-			self.image = pygame.image.load("../resources/Mario/Mario_Double_Jump/Mario_Double_Jump7.png")
+			self.image = pygame.image.load("../resources/Mario/Mario_Double_Jump/Mario_Double_Jump9.png")
 		if(self.direction == "left"):
 			self.image = pygame.transform.flip(self.image,True,False)
 		screen.blit(self.image, self.position)
@@ -191,7 +191,6 @@ class Ball:
 		y += self.speed
 		self.move(x, y)
 
-
 		if not self.touching_platform and self.fast_falling:
 			self.speed += self.ACCELERATION * 2
 		elif not self.touching_platform:
@@ -200,14 +199,12 @@ class Ball:
 			self.speed = self.max_forward_speed
 		self.max_forward_speed = 7.8
 
-		
 		if y >= 570:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
 			self.accx = 0
-
-
+			
 		bools = []
 		for platform in self.platforms:
 			boundary_rect = platform.boundaries[0]
@@ -231,11 +228,13 @@ class Ball:
 					self.move(x, platform.boundaries[1].bottom) #+ self.rect.height)		
 					#self.velx = 0
 				elif self.rect.colliderect(platform.boundaries[2]):
-					#self.speed = 0 
+					if not self.fast_falling:
+						self.speed = 0 
 					self.move(platform.boundaries[2].left - self.rect.width, y)		
 					self.velx = 0
 				elif self.rect.colliderect(platform.boundaries[3]):
-					#self.speed = 0 
+					if not self.fast_falling:
+						self.speed = 0 
 					self.move(platform.boundaries[3].right, y)		
 					self.velx = 0
 			self.touching_platform = True in bools
@@ -294,8 +293,9 @@ class Hitbox:
 		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 
 	def draw(self):
-		if(self.active):
-			pygame.draw.rect(screen, (255,0,0), self.rect, 0) 
+		pass
+		#if(self.active):
+		#	pygame.draw.rect(screen, (255,0,0), self.rect, 0) 
 
 	def change_rect(self, xPos, yPos, width, height):
 		self.yPos = yPos
@@ -339,6 +339,7 @@ while 1:
 		ball.anim_mode = ball.IDLE
 
 	for event in pygame.event.get():
+
 		if event.type == QUIT:
 			sys.exit(0)
 
@@ -397,7 +398,7 @@ while 1:
 		if(pygame.key.get_pressed()[pygame.K_p]):
 			if(ball.anim_mode!=ball.JAB):
 				ball.anim_ctr = 0
-				hitbox.change_rect(15,-10,30,25)
+				hitbox.change_rect(0,-10,40,25)
 				hitbox.change_kb(10,5)
 				hitbox.active = True
 			ball.accx = 0
@@ -424,15 +425,14 @@ while 1:
 			ball.velx = 0
 			ball.anim_mode = ball.DOWN_TILT
 			ball.state_mode = ball.DOWN_TILT
-	elif(ball.falling or ball.jump_ctr<2):
-
+	elif(ball.jump_ctr<2):
 		if pygame.key.get_pressed()[pygame.K_LEFT]:
 			ball.accx = -1.4
 
 		if pygame.key.get_pressed()[pygame.K_RIGHT]:
 			ball.accx = 1.4
 
-	if pygame.key.get_pressed()[pygame.K_DOWN]:
+	if pygame.key.get_pressed()[pygame.K_DOWN] and not ball.touching_platform:
 		ball.fast_falling = True
 		ball.max_forward_speed *= 2
 		pygame.time.set_timer(USEREVENT + 1, 500)
@@ -450,13 +450,13 @@ while 1:
 			hitbox.change_rect(5,0,25,25)
 			hitbox.change_kb(5,13)
 			hitbox.active = True
-			ball.speed = -17
+			ball.speed = -13
 			if(ball.direction == "right"):
 				ball.velx = 10
 			else:
 				ball.velx = -10
-		ball.anim_mode = ball.UP_B
-		ball.state_mode = ball.UP_B
+			ball.anim_mode = ball.UP_B
+			ball.state_mode = ball.UP_B
 
 	if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
 		if(ball.anim_mode!=ball.SIDE_B):
@@ -464,16 +464,20 @@ while 1:
 			hitbox.change_rect(15,0,25,25)
 			hitbox.change_kb(5,8)
 			hitbox.active = True
-			ball.speed = -17
-			ball.speed = -4
+			ball.speed = -1
+
 			if(pygame.key.get_pressed()[pygame.K_RIGHT]):
 				ball.direction = "right"
+
 			else:
 				ball.direction = "left"
-			if(ball.direction == "right" and not(ball.touching_platform)):
-				ball.velx = 5
-			elif(ball.direction == "left" and not(ball.touching_platform)):
-				ball.velx = -5
+
+			if(ball.direction == "right" and not ball.touching_platform):
+				#ball.velx = 5
+				pass
+			elif(ball.direction == "left" and not ball.touching_platform):
+				#ball.velx = -5
+				pass
 		ball.anim_mode = ball.SIDE_B
 		ball.state_mode = ball.SIDE_B
 
