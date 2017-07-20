@@ -91,7 +91,7 @@ def game_intro(bypass = False):
 		b1 = Button((100, 100), "../resources/GUI/Battlefield_Stage_Icon.png", "Battlefield Brawl")
 		b2 = Button((100, 350), "../resources/GUI/Battlefield_Bottom_Icon.png", "Battlefield")
 		b3 = Button((725, 350), "../resources/GUI/Final_Dest_Icon.png", "Final Destination")
-		b4 = Button((725, 100), "../resources/GUI/Stage4_Icon.png", "Ice")
+		b4 = Button((725, 100), "../resources/GUI/Stage4_Icon.png", "Ice - 2")
 
 		button_list = [b1, b2, b3, b4]
 
@@ -141,6 +141,11 @@ def game_end(winner):
 
 	b1 = Button((212, 250), "../resources/GUI/restart-button.png", "restart")
 
+
+	ball_resp = -1
+	ball1_resp = -1
+	ball1.move(screen.get_width() *.375, screen.get_height() * .375 - 20)
+	ball.move(screen.get_width() *.625, screen.get_height() * .375 - 20)
 	button_list = [b1]
 	running = True
 
@@ -403,10 +408,10 @@ class Ball:
 		death.play()
 		if self.luigi:
 			global ball_resp
-			ball_resp = pygame.time.get_ticks() + 2000
+			ball_resp = pygame.time.get_ticks() + 1500
 		else:
 			global ball1_resp
-			ball1_resp = pygame.time.get_ticks() + 2000	
+			ball1_resp = pygame.time.get_ticks() + 1500	
 
 
 	def update(self, deltat):
@@ -645,14 +650,23 @@ while 1:
 
 	hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ", "../resources/GUI/Mario_stock1.png")
 	hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ", "../resources/GUI/Luigi_stock1.png")
-	ball = Ball((screen.get_width() * .625, screen.get_height() * .3), hbar2, True, map1.platforms)
-	ball1 = Ball((screen.get_width() *.375, screen.get_height() * .3), hbar, False, map1.platforms)
+	ball = Ball((screen.get_width() * .625, screen.get_height() * .375 -20), hbar2, True, map1.platforms)
+	ball1 = Ball((screen.get_width() *.375, screen.get_height() * .375 - 20), hbar, False, map1.platforms)
 	ball.direction = "left"
 	hitbox = Hitbox(0,0,10,10,10,10,30, ball, ball1)
 	hitbox1 = Hitbox(0,0,10,10,10,10,30, ball1, ball)
-	
+	ball_resp = -1
+	ball1_resp = -1
+
+	first = 0
 
 	while main_game:
+		if first == 2:
+			go_img = pygame.image.load("../resources/GUI/Go.png")
+			screen.blit(go_img, (screen.get_width() /2 - go_img.get_width() / 2 + 50, screen.get_height() / 2- go_img.get_height() / 2, go_img.get_width(), go_img.get_height()))
+			pygame.display.update()
+			pygame.time.delay(350)
+
 		events = pygame.event.get()
 		if ball1.health_bar.lives == 0 or ball.health_bar.lives == 0:
 			main_game = False
@@ -794,8 +808,8 @@ while 1:
 			if pygame.key.get_pressed()[pygame.K_DOWN] and not ball.touching_platform:
 				ball.fast_falling = True
 				ball.max_forward_speed *= 2
-				pygame.time.set_timer(USEREVENT + 1, 500)D
-			if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.SIDE_B ):
+				pygame.time.set_timer(USEREVENT + 1, 500)
+			if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.SIDE_B or ball.anim_mode == ball.AERIAL):
 				if(ball.anim_mode!=ball.NEUTRAL_B):
 					ball.anim_ctr = 0
 					ball.anim_mode = ball.NEUTRAL_B
@@ -804,7 +818,7 @@ while 1:
 					ball.state_mode = ball.NEUTRAL_B
 					shot_list.add(proj)
 					shoot = True
-			if pygame.key.get_pressed()[pygame.K_o] and pygame.key.get_pressed()[pygame.K_UP] and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.SIDE_B):
+			if pygame.key.get_pressed()[pygame.K_o] and pygame.key.get_pressed()[pygame.K_UP] and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.SIDE_B or ball.anim_mode == ball.AERIAL):
 				if(ball.anim_mode!=ball.UP_B):
 					ball.anim_ctr = 0
 					hitbox.change_rect(5,0,25,25)
@@ -818,7 +832,7 @@ while 1:
 					ball.anim_mode = ball.UP_B
 					ball.state_mode = ball.UP_B
 
-			if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.UP_B):
+			if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.UP_B or ball.anim_mode == ball.AERIAL):
 				if(ball.anim_mode!=ball.SIDE_B):
 					ball.anim_ctr = 0
 					hitbox.change_rect(15,0,25,25)
@@ -962,7 +976,7 @@ while 1:
 				ball1.fast_falling = True
 				ball1.max_forward_speed *= 2
 				pygame.time.set_timer(USEREVENT + 1, 500)
-			if pygame.key.get_pressed()[pygame.K_v] and not(pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B):
+			if pygame.key.get_pressed()[pygame.K_v] and not(pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.NEUTRAL_B):
 					ball1.anim_ctr = 0
 					ball1.anim_mode = ball1.NEUTRAL_B
@@ -971,7 +985,7 @@ while 1:
 					ball1.state_mode = ball1.NEUTRAL_B
 					shot_list.add(proj)
 					shoot = True
-			if pygame.key.get_pressed()[pygame.K_v] and pygame.key.get_pressed()[pygame.K_w] and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B):
+			if pygame.key.get_pressed()[pygame.K_v] and pygame.key.get_pressed()[pygame.K_w] and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.UP_B):
 					ball1.anim_ctr = 0
 					hitbox1.change_rect(5,0,25,25)
@@ -985,7 +999,7 @@ while 1:
 					ball1.anim_mode = ball1.UP_B
 					ball1.state_mode = ball1.UP_B
 
-			if pygame.key.get_pressed()[pygame.K_v] and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.UP_B):
+			if pygame.key.get_pressed()[pygame.K_v] and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.UP_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.SIDE_B):
 					ball1.anim_ctr = 0
 					hitbox1.change_rect(15,0,25,25)
@@ -1024,14 +1038,17 @@ while 1:
 		if(hitbox1!=None):
 			hitbox1.draw()
 			hitbox1.update()
-
+		first += 1
 
 	if(ball.health_bar.lives == 0):
 		winner = "Player 1"
 	else:
 		winner = "Player 2"
 
-	pygame.time.delay(750)
+	go_img = pygame.image.load("../resources/GUI/Game.png")
+	screen.blit(go_img, (screen.get_width() /2 - go_img.get_width() / 2 + 30, screen.get_height() / 2- go_img.get_height() / 2, go_img.get_width(), go_img.get_height()))
+	pygame.display.update()	
+	pygame.time.delay(1000)
 	game_end(winner)
 
 
