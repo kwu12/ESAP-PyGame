@@ -460,7 +460,7 @@ class Ball:
 		self.speed = -knockbackY
 
 class Projectile(pygame.sprite.Sprite):
-	def __init__(self, position, image, direction, luigi = False):
+	def __init__(self, position, image, direction, enemy, luigi = False):
 		super().__init__()
 		self.position = position
 		self.xspeed = 15
@@ -470,11 +470,21 @@ class Projectile(pygame.sprite.Sprite):
 		self.direction = direction
 		self.life_ctr = 0
 		self.luigi = luigi
+		self.enemy = enemy
 		
 	def update(self):
 		self.image = pygame.transform.rotate(self.image, 90)
-		self.image = greenify(self.image)
+		if self.luigi:
+			self.image = greenify(self.image)
 		screen.blit(self.image, self.rect)
+		if self.rect.colliderect(self.enemy.rect):
+			self.enemy.health_bar.update(1)
+			if self.direction == "right":
+				self.enemy.add_knockback(3, 0)
+			else:
+				self.enemy.add_knockback(-3, 0)
+			self.kill()
+
 		self.life_ctr += 1
 		if(self.life_ctr>30):
 			self.kill()
@@ -485,7 +495,7 @@ class Projectile(pygame.sprite.Sprite):
 			self.rect.x += self.xspeed
 
 class Hitbox:
-	def __init__(self, xPos, yPos, width, height, damage, knockbackX, knockbackY, owner):
+	def __init__(self, xPos, yPos, width, height, damage, knockbackX, knockbackY, owner, enemy):
 		self.active = False
 		self.xPos = xPos
 		self.yPos = yPos
@@ -495,6 +505,7 @@ class Hitbox:
 		self.knockbackX = knockbackX
 		self.knockbackY = knockbackY
 		self.owner = owner
+		self.enemy = enemy
 		self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 
 	def draw(self):
@@ -519,15 +530,19 @@ class Hitbox:
 			self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 		if self.rect.colliderect(ball1.rect) and self.active:
 			print("kb")
+			mod = 3 * (self.enemy.health_bar.hp / self.enemy.health_bar.size) + 1
+			self.enemy.health_bar.update((self.knockbackX + self.knockbackY) / 20)
 			if(self.owner.direction == "left"):
-				ball1.add_knockback(-self.knockbackX, self.knockbackY)
+				ball1.add_knockback(-self.knockbackX * mod, self.knockbackY * mod)
 			else:
-				ball1.add_knockback(self.knockbackX, self.knockbackY)
+				ball1.add_knockback(self.knockbackX * mod, self.knockbackY * mod)
 			self.active = False
 
 
 class Health:
-	BASE_HP = 100
+	BASE_HP = 0
+	MIN_HP = 0
+	MAX_HP = 100
 	def __init__(self, position, color, size, text, life_image):
 		self.position = position
 		self.size = size
@@ -541,7 +556,8 @@ class Health:
 	def draw(self):
 		#print("true")
 		pygame.draw.rect(screen, (0, 0, 0), (self.position[0], self.position[1] - 50, self.size, 70))
-		pygame.draw.rect(screen, self.color, Rect(self.position, (self.size * (self.hp / 100), 20)), 0)
+		if self.hp > self.MIN_HP:
+			pygame.draw.rect(screen, self.color, Rect(self.position, (self.size * (self.hp / 100), 20)), 0)
 		title = pygame.font.Font(None, 20)
 		#title = pygame.font.SysFont("Arial", 20, bold=False, italic=False) 
 		titlefont = title.render(self.text, True, (255, 255, 255))
@@ -553,10 +569,12 @@ class Health:
 			screen.blit(self.life_image, (self.position[0] + i * 20 + 5, self.position[1] - 22, rect.width, rect.height))
 		#bar = pygame.draw.rect(screen, (255, 255, 255), Rect((0, 546), (self.positionx, 576)), 0)
 	
-	def update(self, dmg):
-		self.hp -= dmg
-		if self.hp < 0:
-			self.hp = 0
+	def update(self, change):
+		self.hp += change
+		if self.hp < self.MIN_HP:
+			self.hp = self.MIN_HP
+		elif self.hp > self.MAX_HP:
+			self.hp = self.MAX_HP
 		#canvas.create_rectangle(0, 546, self.positionx, 576, fill = "red", outline = "red")
 	
 	# def update(self):
@@ -584,7 +602,7 @@ while 1:
 	ball = Ball((screen.get_width() * .625, screen.get_height() * .3), hbar2, True, map1.platforms)
 	ball1 = Ball((screen.get_width() *.375, screen.get_height() * .3), hbar, False, map1.platforms)
 	ball.direction = "left"
-	hitbox = Hitbox(0,0,10,10,10,10,30, ball)
+	hitbox = Hitbox(0,0,10,10,10,10,30, ball, ball1)
 	shot_list = pygame.sprite.Group()
 
 	while main_game:
@@ -688,7 +706,7 @@ while 1:
 				ball.velx = 0
 				ball.anim_mode = ball.DOWN_TILT
 				ball.state_mode = ball.DOWN_TILT
-		elif(ball.falling or ball.jump_ctr<2):
+		elif(ball.falling or ball.jump_ctr < 2):
 			if(ball.accx>1.4):
 				ball.accx = 1.4
 			if(ball.accx<-1.4):
@@ -705,11 +723,12 @@ while 1:
 		if pygame.key.get_pressed()[pygame.K_DOWN] and not ball.touching_platform:
 			ball.fast_falling = True
 			ball.max_forward_speed *= 2
+			pygame.time.set_timer(USEREVENT + 1, 500)
 		if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]):
 			if(ball.anim_mode!=ball.NEUTRAL_B):
 				ball.anim_ctr = 0
 				ball.anim_mode = ball.NEUTRAL_B
-				proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, ball)
+				proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, ball1, luigi = True)
 				ball.state_mode = ball.NEUTRAL_B
 				shot_list.add(proj)
 				shoot = True
