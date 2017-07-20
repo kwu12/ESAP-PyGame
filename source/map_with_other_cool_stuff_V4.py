@@ -78,7 +78,7 @@ def game_intro(bypass = False):
 		b1 = Button((100, 100), "../resources/GUI/Battlefield_Stage_Icon.png", "Battlefield Brawl")
 		b2 = Button((100, 350), "../resources/GUI/Battlefield_Bottom_Icon.png", "Battlefield")
 		b3 = Button((725, 350), "../resources/GUI/Final_Dest_Icon.png", "Final Destination")
-		b4 = Button((725, 100), "../resources/GUI/Final_Dest_Icon.png", "Ice")
+		b4 = Button((725, 100), "../resources/GUI/Stage4_Icon.png", "Ice")
 
 		button_list = [b1, b2, b3, b4]
 
@@ -113,11 +113,12 @@ def game_intro(bypass = False):
 	global main_game
 	main_game = True
 
-def game_end():
-
+def game_end(winner):
+	pygame.mixer.music.load('../resources/Music/GameOver.mp3')
+	pygame.mixer.music.play(-1, 0)
 	end = pygame.font.Font(None, 80)
-	endfont = end.render("Game Over! PLACEHOLDER wins", True, (0, 0, 0))
-	size = end.size("Game OverPLACEHOLDER wins")
+	endfont = end.render("Game Over! " + winner + " wins!", True, (0, 0, 0))
+	size = end.size("Game Over! " + winner + " wins!")
 	screen.blit(endfont, ((screen.get_width()//2) - (size[0]//2), (screen.get_height()//3) - (size[1]//2)))
 
 	BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
@@ -746,8 +747,13 @@ while 1:
 			hitbox.draw()
 			hitbox.update()
 
+	if(ball.health_bar.lives == 0):
+		winner = "Player 1"
+	else:
+		winner = "Player 2"
 
-	game_end()
+	pygame.time.delay(1000)
+	game_end(winner)
 		#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
 
 
