@@ -12,7 +12,14 @@ pygame.font.init()
 shoot = False
 map_name = "Battlefield"
 main_game = False
+
+pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.mixer.init()
+pygame.mixer.music.set_volume(0.7)
+
+fball = pygame.mixer.Sound("../resources/Effects/Fire.wav") 
+hit = pygame.mixer.Sound("../resources/Effects/Hit.wav") 
+death = pygame.mixer.Sound("../resources/Effects/Fall.wav") 
 
 
 
@@ -25,15 +32,16 @@ def greenify(surface):
 			dist = math.sqrt((red.r - color.r)**2 + (red.g - color.g)**2 + (red.b - color.b)**2)
 			#color2 = pygame.color.Color(r,g,b,0)
 			#0-30 330-360
+			saturation = 100
 			if dist <= 170:
-				if color.r - 80 < 0:
+				if color.r - saturation < 0:
 					color.r = 0
 				else:
-					color.r -= 80
-				if color.g + 80 > 255:
+					color.r -= saturation
+				if color.g + saturation > 255:
 					color.g = 255
 				else:
-					color.g += 80
+					color.g += saturation
 				surface.set_at([x, y], color)
 	return surface
 
@@ -371,6 +379,15 @@ class Ball:
 		if(self.speed>2):
 			self.falling = True
 
+	def die(self):
+		self.move(screen.get_width() / 2, 0)
+		self.speed = 0
+		self.velx = 0
+		self.accx = 0
+		self.health_bar.lose_life()
+		death.play()
+
+
 	def update(self, deltat):
 		self.velx *= 0.7
 		self.velx += self.accx
@@ -391,26 +408,10 @@ class Ball:
 			self.speed = self.max_forward_speed
 		self.max_forward_speed = 7.8
 
-		if y >= screen.get_height():
-			self.move(screen.get_width() / 2, 0)
-			self.speed = 0
-			self.velx = 0
-			self.accx = 0
-			self.health_bar.lose_life()
 
-		if x >= screen.get_width() + 25:
-			self.move(screen.get_width() / 2, 0)
-			self.speed = 0
-			self.velx = 0
-			self.accx = 0
-			self.health_bar.lose_life()
+		if y >= screen.get_height() or x >= screen.get_width() + 25 or x <= -25:
+			self.die()
 
-		if x <=  -25:
-			self.move(screen.get_width() / 2, 0)
-			self.speed = 0
-			self.velx = 0
-			self.accx = 0
-			self.health_bar.lose_life()
 			
 		bools = []
 		for platform in self.platforms:
@@ -483,6 +484,7 @@ class Projectile(pygame.sprite.Sprite):
 				self.enemy.add_knockback(3, 0)
 			else:
 				self.enemy.add_knockback(-3, 0)
+			
 			self.kill()
 
 		self.life_ctr += 1
@@ -530,6 +532,7 @@ class Hitbox:
 			self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 		if self.rect.colliderect(ball1.rect) and self.active:
 			print("kb")
+			hit.play()
 			mod = 3 * (self.enemy.health_bar.hp / self.enemy.health_bar.size) + 1
 			self.enemy.health_bar.update((self.knockbackX + self.knockbackY) / 20)
 			if(self.owner.direction == "left"):
@@ -728,6 +731,7 @@ while 1:
 			if(ball.anim_mode!=ball.NEUTRAL_B):
 				ball.anim_ctr = 0
 				ball.anim_mode = ball.NEUTRAL_B
+				fball.play()
 				proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, ball1, luigi = True)
 				ball.state_mode = ball.NEUTRAL_B
 				shot_list.add(proj)
