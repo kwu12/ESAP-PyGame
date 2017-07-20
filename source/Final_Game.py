@@ -818,7 +818,7 @@ while 1:
 					ball.anim_mode = ball.UP_B
 					ball.state_mode = ball.UP_B
 
-			if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.UP_B):
+			if pygame.key.get_pressed()[pygame.K_o] and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]) and not(ball.anim_mode == ball.NEUTRAL_B or ball.anim_mode == ball.UP_B or ball.anim_mode == ball.AERIAL):
 				if(ball.anim_mode!=ball.SIDE_B):
 					ball.anim_ctr = 0
 					hitbox.change_rect(15,0,25,25)
@@ -962,7 +962,7 @@ while 1:
 				ball1.fast_falling = True
 				ball1.max_forward_speed *= 2
 				pygame.time.set_timer(USEREVENT + 1, 500)
-			if pygame.key.get_pressed()[pygame.K_v] and not(pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B):
+			if pygame.key.get_pressed()[pygame.K_v] and not(pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.NEUTRAL_B):
 					ball1.anim_ctr = 0
 					ball1.anim_mode = ball1.NEUTRAL_B
@@ -971,7 +971,7 @@ while 1:
 					ball1.state_mode = ball1.NEUTRAL_B
 					shot_list.add(proj)
 					shoot = True
-			if pygame.key.get_pressed()[pygame.K_v] and pygame.key.get_pressed()[pygame.K_w] and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B):
+			if pygame.key.get_pressed()[pygame.K_v] and pygame.key.get_pressed()[pygame.K_w] and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.SIDE_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.UP_B):
 					ball1.anim_ctr = 0
 					hitbox1.change_rect(5,0,25,25)
@@ -985,7 +985,7 @@ while 1:
 					ball1.anim_mode = ball1.UP_B
 					ball1.state_mode = ball1.UP_B
 
-			if pygame.key.get_pressed()[pygame.K_v] and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.UP_B):
+			if pygame.key.get_pressed()[pygame.K_v] and (pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_a]) and not(ball1.anim_mode == ball1.NEUTRAL_B or ball1.anim_mode == ball1.UP_B or ball1.anim_mode == ball1.AERIAL):
 				if(ball1.anim_mode!=ball1.SIDE_B):
 					ball1.anim_ctr = 0
 					hitbox1.change_rect(15,0,25,25)
