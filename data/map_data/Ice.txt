@@ -3,7 +3,7 @@ base_image = MountainBG.jpg
 song = MuteCity.mp3
 **PLATFORM**
 platformx = 0.125
-platformy = 0.4
+platformy = 0.5
 plat_image = Platform4.png
 fall_through = False
 move_params0 = None
@@ -11,7 +11,7 @@ move_params1 = None
 move_params2 = None
 **PLATFORM**
 platformx = 0.5
-platformy = 0.5
+platformy = 0.6
 plat_image = Stage4.png
 fall_through = False
 move_params0 = None
@@ -19,7 +19,7 @@ move_params1 = None
 move_params2 = None
 **PLATFORM**
 platformx = 0.875
-platformy = 0.4
+platformy = 0.5
 plat_image = Platform4.png
 fall_through = False
 move_params0 = None

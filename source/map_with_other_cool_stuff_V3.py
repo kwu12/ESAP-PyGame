@@ -10,8 +10,8 @@ pygame.display.set_caption("Smeesh")
 clock = pygame.time.Clock()
 pygame.font.init()
 shoot = False
-map_name = "Ice"
-
+map_name = "Battlefield"
+main_game = False
 pygame.mixer.init()
 pygame.mixer.music.load('../resources/Music/stage_select.mp3')
 pygame.mixer.music.play(-1, 0.0)
@@ -54,8 +54,12 @@ class Button:
 			pygame.draw.rect(screen, (255, 0, 0), (self.rect.left - 3, self.rect.top - 3, self.rect.width + 6, self.rect.height + 6), 1)
 
 	def action(self):
-		global map_name
-		map_name = self.name
+		if self.name == "restart":
+			global main_game
+			main_game = True
+		else:
+			global map_name
+			map_name = self.name
 
 
 def game_intro(bypass = False):
@@ -70,26 +74,12 @@ def game_intro(bypass = False):
 
 		BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
 
-
-		battlefield = pygame.image.load("../resources/GUI/Battlefield_Bottom_Icon.png")
-		battlefieldrect = battlefield.get_rect()
-		battlefieldrect.x = (screen.get_width()//3 - battlefieldrect.width)
-		battlefieldrect.y = (2 * screen.get_height()//3 - battlefieldrect.height//2)
-
-		Final = pygame.image.load("../resources/GUI/Final_Dest_Icon.png")
-		Finalrect = Final.get_rect()
-		Finalrect.x = (2 * screen.get_width()//3)
-		Finalrect.y = (2 * screen.get_height()//3 - Finalrect.height//2)
-
-		Brawl = pygame.image.load("../resources/GUI/Battlefield_Stage_Icon.png")
-		Brawlrect = Brawl.get_rect()
-		Brawlrect.x = (screen.get_width()//3 - Brawlrect.width)
-		Brawlrect.y = (screen.get_height()//3 - Brawlrect.height//2)
-
 		b1 = Button((100, 100), "../resources/GUI/Battlefield_Stage_Icon.png", "Battlefield Brawl")
 		b2 = Button((100, 350), "../resources/GUI/Battlefield_Bottom_Icon.png", "Battlefield")
 		b3 = Button((725, 350), "../resources/GUI/Final_Dest_Icon.png", "Final Destination")
-		button_list = [b1, b2, b3]
+		b4 = Button((725, 100), "../resources/GUI/Final_Dest_Icon.png", "Ice")
+
+		button_list = [b1, b2, b3, b4]
 
 
 		while not done:
@@ -119,7 +109,8 @@ def game_intro(bypass = False):
 			for button in button_list:
 				button.draw()
 
-	return True
+	global main_game
+	main_game = True
 
 def game_end():
 
@@ -130,11 +121,12 @@ def game_end():
 
 	BG = pygame.image.load("../resources/Backgrounds/Stage_Select.png")
 
-	b1 = Button((212, 250), "../resources/GUI/restart-button.png")
+	b1 = Button((212, 250), "../resources/GUI/restart-button.png", "restart")
 
 	button_list = [b1]
+	running = True
 
-	while 1:
+	while running:
 		deltat = clock.tick(30)
 		mouse = pygame.mouse.get_pos()
 
@@ -142,6 +134,7 @@ def game_end():
 			if event.type == MOUSEBUTTONDOWN:
 				for button in button_list:
 					if button.rect.collidepoint(mouse):
+						running = False
 						button.action()
 			if event.type == MOUSEMOTION:
 				for button in button_list:
@@ -164,6 +157,7 @@ def game_end():
 		#screen.blit(Brawl, Brawlrect)
 		for button in button_list:
 			button.draw()
+
 
 def create_map_from_file(name):
 	plats = []
@@ -225,15 +219,16 @@ class Platform:
 		screen.blit(self.image, self.rect)
 		# if self.move_params != None:
 		# 	pygame.draw.rect(screen, (255,255,255), Rect(self.target - self.move_params[0], self.y, self.move_params[0], 10))
-		colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
-		for i in range(len(self.boundaries)):
-			pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
+		# colors = [(255,255,0), (255,0,0), (0,255,0), (0,0,255)]
+		# for i in range(len(self.boundaries)):
+		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
 
 	def move(self, x, y):
 		self.x = x
 		self.y = y
 		image_rect = self.image.get_rect()
 		num = image_rect.width / 25
+		hnum = image_rect. height / 7
 		print(num)
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		#legacy collision boxes
@@ -241,10 +236,10 @@ class Platform:
 		# boundary_bottom = Rect(self.rect.left + num, self.rect.bottom - num, self.rect.width - 2 * num, num)
 		# boundary_left = Rect(self.rect.left, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
 		# boundary_right = Rect(self.rect.right - num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
-		boundary_top = Rect(self.rect.left + num, self.rect.top + num, self.rect.width - 2 * num, num)
-		boundary_bottom = Rect(self.rect.left + 2 * num, self.rect.bottom - num, self.rect.width - 4 * num, num)
-		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
-		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * num, num, self.rect.height - 2 * num)
+		boundary_top = Rect(self.rect.left + num, self.rect.top + hnum, self.rect.width - 2 * num, hnum)
+		boundary_bottom = Rect(self.rect.left + 2 * num, self.rect.bottom - hnum, self.rect.width - 4 * num, hnum)
+		boundary_left = Rect(self.rect.left + num, self.rect.top + 2 * hnum, num, self.rect.height - 2 * hnum)
+		boundary_right = Rect(self.rect.right - 2 * num, self.rect.top + 2 * hnum, num, self.rect.height - 2 * hnum)
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
 
 	def mvmnt_inc(self, deltat):
@@ -446,30 +441,26 @@ class Ball:
 			self.speed = 0
 			self.velx = 0
 			self.accx = 0
+			self.health_bar.lose_life()
 
 		if x >= screen.get_width() + 25:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
 			self.accx = 0
+			self.health_bar.lose_life()
 
 		if x <=  -25:
 			self.move(screen.get_width() / 2, 0)
 			self.speed = 0
 			self.velx = 0
 			self.accx = 0
-
+			self.health_bar.lose_life()
 
 		bools = []
 		for platform in self.platforms:
 			boundary_rect = platform.boundaries[0]
-
 			if self.rect.colliderect(boundary_rect) and self.speed >= 0 and (not self.fast_falling or not platform.fall_through): #and not platform.fall_through: 
-				#if self.rect.bottom > boundary_rect.top and self.rect.bottom - boundary_rect.top > 0:
-				#print(2)
-				# print(self.rect.bottom)
-				# print(boundary_rect.top)
-
 				self.speed = 0 
 				self.move(x, boundary_rect.top - self.rect.height) 		
 				self.jump_ctr = 2	
@@ -478,30 +469,20 @@ class Ball:
 				#print(boundary_rect.top - self.rect.height)
 				if platform.move_params != None:
 					self.move(x + platform.mvmnt_inc(deltat), boundary_rect.top - platform.rect.height - platform.move_params[2])
-				# self.speed *= -1
-				#self.velx = 0
 			else:
 				bools.append(False)
 			x, y = self.position
 			if not self.rect.colliderect(boundary_rect) and not platform.fall_through:
-				#print("Here")
 				if self.rect.colliderect(platform.boundaries[1]):
 					self.speed = 0 
 					self.move(x, platform.boundaries[1].bottom) #+ self.rect.height)		
-					#self.velx = 0
 				elif self.rect.colliderect(platform.boundaries[2]):
-					#self.speed = 0 
 					self.move(platform.boundaries[2].left - self.rect.width, y)		
 					self.velx = 0
 				elif self.rect.colliderect(platform.boundaries[3]):
-					#self.speed = 0 
 					self.move(platform.boundaries[3].right, y)		
 					self.velx = 0
 			self.touching_platform = True in bools
-				# else:
-				# 	self.touching_platform = False
-				# else:
-				# 	self.touching_platform = False
 
 			
 
@@ -571,24 +552,27 @@ class Hitbox:
 
 
 class Health:
-
+	BASE_HP = 100
 	def __init__(self, position, color, size, text):
 		self.position = position
 		self.size = size
+		self.lives = 2
 		#self.positiondecrease = positiondecrease
-		self.hp = 100
+		self.hp = self.BASE_HP
 		self.color = color
 		self.text = text
 
 	def draw(self):
 		#print("true")
-		pygame.draw.rect(screen, (0, 0, 0), (self.position[0], self.position[1] - 30, self.size, 50))
+		pygame.draw.rect(screen, (0, 0, 0), (self.position[0], self.position[1] - 50, self.size, 70))
 		pygame.draw.rect(screen, self.color, Rect(self.position, (self.size * (self.hp / 100), 20)), 0)
 		title = pygame.font.Font(None, 20)
 		#title = pygame.font.SysFont("Arial", 20, bold=False, italic=False) 
 		titlefont = title.render(self.text, True, (255, 255, 255))
 		size = title.size(self.text)
-		screen.blit(titlefont, (self.position[0] + (self.size - size[0]) / 2, self.position[1] - 20))
+		screen.blit(titlefont, (self.position[0] + (self.size - size[0]) / 2, self.position[1] - 40))
+		for i in range(self.lives):
+			pygame.draw.circle(screen, self.color, (self.position[0] + i * 16 + 10, self.position[1] - 15), 4, 0)
 		#bar = pygame.draw.rect(screen, (255, 255, 255), Rect((0, 546), (self.positionx, 576)), 0)
 	
 	def update(self, dmg):
@@ -604,149 +588,163 @@ class Health:
 		# pygame.draw.rect(screen, (200, 10, 90), Rect((0, 546)))
 		# pygame.bar.inflate_ip(self.positiondecrease, -25)
 
+	def lose_life(self):
+		self.lives -= 1
+		self.hp = self.BASE_HP
+
 #460 x 171
 
 
-main_game = False
-main_game = game_intro(bypass = True)
+while 1:
+	game_intro(bypass = False)
+	map1 = create_map_from_file(map_name)
+	#map1 = Map("Final Destination")
+	#pygame.sprite.spritecollide(, surface_group, False)
 
+	hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ")
+	hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ")
+	ball = Ball((screen.get_width() * .625, screen.get_height() * .3), hbar2, True, map1.platforms)
+	ball1 = Ball((screen.get_width() *.375, screen.get_height() * .3), hbar, False, map1.platforms)
+	ball.direction = "left"
+	hitbox = Hitbox(0,0,10,10,10,10,30, ball)
+	shot_list = pygame.sprite.Group()
 
-map1 = create_map_from_file(map_name)
-#map1 = Map("Final Destination")
-#pygame.sprite.spritecollide(, surface_group, False)
-
-hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ")
-hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ")
-ball = Ball((screen.get_width() / 2, 100), hbar, True, map1.platforms)
-ball1 = Ball((screen.get_width() / 2, 100), hbar2, False, map1.platforms)
-hitbox = Hitbox(0,0,10,10,10,10,30, ball)
-shot_list = pygame.sprite.Group()
-
-while main_game:
-	deltat = clock.tick(30)
-	if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 2):
-		ball.state_mode = ball.IDLE
-		ball.anim_mode = ball.IDLE
-	for event in pygame.event.get():
-		if event.type == QUIT:
-			sys.exit(0)
-		if event.type == USEREVENT + 1:
-			ball.fast_falling = False
-		if not hasattr(event, 'key'): continue
-		if event.type == KEYDOWN:
-			if event.key == K_UP and ball.jump_ctr == 1:
-				ball.jump()
-			if event.key == K_UP and ball.jump_ctr == 2:
-				ball.jump()
-
-		if event.type == KEYUP:
-			if (event.key == K_LEFT or event.key == K_RIGHT) and ball.touching_platform:
-				ball.anim_mode = ball.IDLE
-		if event.key == K_ESCAPE:
-			sys.exit(0)
-
-
-	if(ball.touching_platform and ball.state_mode == ball.IDLE):
-		if(ball.touching_platform and ball.falling == True):
+	while main_game:
+		if ball1.health_bar.lives == 0 or ball.health_bar.lives == 0:
+			main_game = False
+			continue
+		deltat = clock.tick(30)
+		if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 2):
 			ball.state_mode = ball.IDLE
-			ball.falling = False
-		if(ball.state_mode == ball.IDLE):
 			ball.anim_mode = ball.IDLE
-		if pygame.key.get_pressed()[pygame.K_DOWN] and ball.falling == False:
-			ball.anim_mode = ball.CROUCHING
-		if pygame.key.get_pressed()[pygame.K_LEFT] and ball.falling == False:
-			ball.accx = -3
-			if(pygame.key.get_pressed()[pygame.K_UP] and ball.jump_ctr == 2):
-				ball.jump()
-				ball.anim_mode = ball.JUMPING
-				ball.touching_platform = False
-			elif(ball.touching_platform and ball.anim_mode!=ball.JUMPING):
-				ball.anim_mode = ball.RUNNING
-				ball.direction = "left"
-		if pygame.key.get_pressed()[pygame.K_RIGHT] and ball.falling == False:
-			ball.accx = 3
-			if(pygame.key.get_pressed()[pygame.K_UP] and ball.jump_ctr == 2):
-				ball.jump()
-				ball.anim_mode = ball.JUMPING
-				ball.touching_platform = False
-			elif(ball.touching_platform and ball.anim_mode!=ball.JUMPING):
-				ball.anim_mode = ball.RUNNING
-				ball.direction = "right"
-		if not(pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
-			ball.accx = 0
-		if(pygame.key.get_pressed()[pygame.K_p]):
-			if(ball.anim_mode!=ball.JAB):
-				ball.anim_ctr = 0
-				hitbox.active = True
-			ball.accx = 0
-			ball.velx = 0
-			ball.anim_mode = ball.JAB
-			ball.state_mode = ball.JAB
-		if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_RIGHT]or pygame.key.get_pressed()[pygame.K_LEFT])):
-			if(ball.anim_mode!=ball.FORWARD_TILT):
-				ball.anim_ctr = 0
-			ball.accx = 0
-			ball.velx = 0
-			ball.anim_mode = ball.FORWARD_TILT
-			ball.state_mode = ball.FORWARD_TILT
-		if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_DOWN])):
-			if(ball.anim_mode!=ball.DOWN_TILT):
-				ball.anim_ctr = 0
-			ball.accx = 0
-			ball.velx = 0
-			ball.anim_mode = ball.DOWN_TILT
-			ball.state_mode = ball.DOWN_TILT
-	elif(ball.falling or ball.jump_ctr<2):
-		if pygame.key.get_pressed()[pygame.K_LEFT]:
-			ball.accx = -1.4
-		if pygame.key.get_pressed()[pygame.K_RIGHT]:
-			ball.accx = 1.4
-	if pygame.key.get_pressed()[pygame.K_DOWN]:
-		ball.fast_falling = True
-		ball.max_forward_speed *= 2
-		pygame.time.set_timer(USEREVENT + 1, 500)
-	if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]):
-		if(ball.anim_mode!=ball.NEUTRAL_B):
-			ball.anim_ctr = 0
-			ball.anim_mode = ball.NEUTRAL_B
-			proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, luigi = True)
-			ball.state_mode = ball.NEUTRAL_B
-			# proj.rect.x = 
-			# proj.rect.y = 
-			#all_sprites.add(proj)
-			shot_list.add(proj)
-			shoot = True
-	if pygame.key.get_pressed()[pygame.K_o] and pygame.key.get_pressed()[pygame.K_UP]:
-		if(ball.anim_mode!=ball.UP_B):
-			ball.anim_ctr = 0
-			ball.speed = -17
-			if(ball.direction == "right"):
-				ball.velx = 10
-			else:
-				ball.velx = -10
-		ball.anim_mode = ball.UP_B
-		ball.state_mode = ball.UP_B
+		for event in pygame.event.get():
+			if event.type == QUIT:
+				sys.exit(0)
+			if event.type == USEREVENT + 1:
+				ball.fast_falling = False
+			if not hasattr(event, 'key'): continue
+			if event.type == KEYDOWN:
+				if event.key == K_UP and ball.jump_ctr == 1:
+					ball.jump()
+				if event.key == K_UP and ball.jump_ctr == 2:
+					ball.jump()
 
-	for shot in shot_list:
-		shot.update()
-    # Remove the bullet if it flies up off the screen
-		# if shot.rect.x >= 1024 or shot.rect.x <= -20:
-		# 	shot.kill()
-		# 	#all_sprites.remove(shot)
-		# 	shot_list.remove(shot)
-		# 	shoot = False
-	pygame.display.update()
-	map1.draw()
-	map1.update(deltat)
-	#hbar.draw()
-	hbar2.draw()
-	ball.update(deltat)
-	ball.draw()	
-	ball1.update(deltat)
-	ball1.draw()	
-	if(hitbox!=None):
-		hitbox.draw()
-		hitbox.update()
-	#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
+			if event.type == KEYUP:
+				if (event.key == K_LEFT or event.key == K_RIGHT) and ball.touching_platform:
+					ball.anim_mode = ball.IDLE
+			if event.key == K_ESCAPE:
+				sys.exit(0)
+
+
+		if(ball1.touching_platform and ball1.state_mode == ball.IDLE):
+			if(ball1.touching_platform and ball1.falling == True):
+				ball1.state_mode = ball1.IDLE
+				ball1.falling = False
+
+		if(ball.touching_platform and ball.state_mode == ball.IDLE):
+			if(ball.touching_platform and ball.falling == True):
+				ball.state_mode = ball.IDLE
+				ball.falling = False
+			if(ball.state_mode == ball.IDLE):
+				ball.anim_mode = ball.IDLE
+			if pygame.key.get_pressed()[pygame.K_DOWN] and ball.falling == False:
+				ball.anim_mode = ball.CROUCHING
+			if pygame.key.get_pressed()[pygame.K_LEFT] and ball.falling == False:
+				ball.accx = -3
+				if(pygame.key.get_pressed()[pygame.K_UP] and ball.jump_ctr == 2):
+					ball.jump()
+					ball.anim_mode = ball.JUMPING
+					ball.touching_platform = False
+				elif(ball.touching_platform and ball.anim_mode!=ball.JUMPING):
+					ball.anim_mode = ball.RUNNING
+					ball.direction = "left"
+			if pygame.key.get_pressed()[pygame.K_RIGHT] and ball.falling == False:
+				ball.accx = 3
+				if(pygame.key.get_pressed()[pygame.K_UP] and ball.jump_ctr == 2):
+					ball.jump()
+					ball.anim_mode = ball.JUMPING
+					ball.touching_platform = False
+				elif(ball.touching_platform and ball.anim_mode!=ball.JUMPING):
+					ball.anim_mode = ball.RUNNING
+					ball.direction = "right"
+			if not(pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_LEFT]):
+				ball.accx = 0
+			if(pygame.key.get_pressed()[pygame.K_p]):
+				if(ball.anim_mode!=ball.JAB):
+					ball.anim_ctr = 0
+					hitbox.active = True
+				ball.accx = 0
+				ball.velx = 0
+				ball.anim_mode = ball.JAB
+				ball.state_mode = ball.JAB
+			if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_RIGHT]or pygame.key.get_pressed()[pygame.K_LEFT])):
+				if(ball.anim_mode!=ball.FORWARD_TILT):
+					ball.anim_ctr = 0
+				ball.accx = 0
+				ball.velx = 0
+				ball.anim_mode = ball.FORWARD_TILT
+				ball.state_mode = ball.FORWARD_TILT
+			if(pygame.key.get_pressed()[pygame.K_p] and (pygame.key.get_pressed()[pygame.K_DOWN])):
+				if(ball.anim_mode!=ball.DOWN_TILT):
+					ball.anim_ctr = 0
+				ball.accx = 0
+				ball.velx = 0
+				ball.anim_mode = ball.DOWN_TILT
+				ball.state_mode = ball.DOWN_TILT
+		elif(ball.falling or ball.jump_ctr<2):
+			if pygame.key.get_pressed()[pygame.K_LEFT]:
+				ball.accx = -1.4
+			if pygame.key.get_pressed()[pygame.K_RIGHT]:
+				ball.accx = 1.4
+		if pygame.key.get_pressed()[pygame.K_DOWN]:
+			ball.fast_falling = True
+			ball.max_forward_speed *= 2
+			pygame.time.set_timer(USEREVENT + 1, 500)
+		if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]):
+			if(ball.anim_mode!=ball.NEUTRAL_B):
+				ball.anim_ctr = 0
+				ball.anim_mode = ball.NEUTRAL_B
+				proj = Projectile(ball.position, '../resources/Mario/Mario_Neutral_B/Mario_Fireball.png', ball.direction, luigi = True)
+				ball.state_mode = ball.NEUTRAL_B
+				# proj.rect.x = 
+				# proj.rect.y = 
+				#all_sprites.add(proj)
+				shot_list.add(proj)
+				shoot = True
+		if pygame.key.get_pressed()[pygame.K_o] and pygame.key.get_pressed()[pygame.K_UP]:
+			if(ball.anim_mode!=ball.UP_B):
+				ball.anim_ctr = 0
+				ball.speed = -17
+				if(ball.direction == "right"):
+					ball.velx = 10
+				else:
+					ball.velx = -10
+			ball.anim_mode = ball.UP_B
+			ball.state_mode = ball.UP_B
+
+		for shot in shot_list:
+			shot.update()
+	    # Remove the bullet if it flies up off the screen
+			# if shot.rect.x >= 1024 or shot.rect.x <= -20:
+			# 	shot.kill()
+			# 	#all_sprites.remove(shot)
+			# 	shot_list.remove(shot)
+			# 	shoot = False
+		pygame.display.update()
+		map1.draw()
+		map1.update(deltat)
+		#hbar.draw()
+		hbar2.draw()
+		ball.update(deltat)
+		ball.draw()	
+		ball1.update(deltat)
+		ball1.draw()	
+		if(hitbox!=None):
+			hitbox.draw()
+			hitbox.update()
+
+
+	game_end()
+		#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
 
 
