@@ -13,6 +13,10 @@ shoot = False
 map_name = "Battlefield"
 main_game = False
 shot_list = pygame.sprite.Group()
+global ball_resp 
+global ball1_resp
+ball_resp = -1
+ball1_resp = -1 
 
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.mixer.init()
@@ -391,12 +395,18 @@ class Ball:
 			self.falling = True
 
 	def die(self):
-		self.move(screen.get_width() / 2, 0)
+		self.move(4000, 0)
 		self.speed = 0
 		self.velx = 0
 		self.accx = 0
 		self.health_bar.lose_life()
 		death.play()
+		if self.luigi:
+			global ball_resp
+			ball_resp = pygame.time.get_ticks() + 2000
+		else:
+			global ball1_resp
+			ball1_resp = pygame.time.get_ticks() + 2000	
 
 
 	def update(self, deltat):
@@ -421,7 +431,7 @@ class Ball:
 		self.max_forward_speed = 7.8
 
 
-		if y >= screen.get_height() or x >= screen.get_width() + 25 or x <= -25 or y <= -50:
+		if (not x == 4000) and (y >= screen.get_height() or x >= screen.get_width() + 25 or x <= -25 or y <= -150):
 			self.die()
 
 			
@@ -638,6 +648,15 @@ while 1:
 		if ball1.health_bar.lives == 0 or ball.health_bar.lives == 0:
 			main_game = False
 			continue
+
+		if ball_resp != -1 and pygame.time.get_ticks() > ball_resp:
+			ball.move(screen.get_width() / 2, 50)
+			ball_resp = -1
+
+		if ball1_resp != -1 and pygame.time.get_ticks() > ball1_resp:
+			ball1.move(screen.get_width() / 2, 50)
+			ball1_resp = -1
+
 		deltat = clock.tick(30)
 
 		if(ball.touching_platform and ball.ANIM_INC[ball.anim_mode] - ball.anim_ctr < 1):
@@ -996,6 +1015,7 @@ while 1:
 		if(hitbox1!=None):
 			hitbox1.draw()
 			hitbox1.update()
+
 
 	if(ball.health_bar.lives == 0):
 		winner = "Player 1"
