@@ -90,6 +90,7 @@ def game_intro(bypass = False):
 			for event in pygame.event.get():
 				if event.type == QUIT:
 					sys.exit(0)
+
 				if event.type == MOUSEBUTTONDOWN:
 					for button in button_list:
 						if button.rect.collidepoint(mouse):
@@ -135,6 +136,9 @@ def game_end(winner):
 		mouse = pygame.mouse.get_pos()
 
 		for event in pygame.event.get():
+			if event.type == QUIT:
+				sys.exit(0)
+
 			if event.type == MOUSEBUTTONDOWN:
 				for button in button_list:
 					if button.rect.collidepoint(mouse):
@@ -234,9 +238,9 @@ class Platform:
 		image_rect = self.image.get_rect()
 		num = image_rect.width / 25
 		if self.img_name.find("Battlefield_Stage") != -1:
-			hnum = image_rect.height / 10.5
+			hnum = image_rect.height/10.5
 		else:
-			hnum = image_rect.height / 7
+			hnum = image_rect. height / 7
 		self.rect = Rect(self.x - image_rect.width / 2, self.y, image_rect.width, image_rect.height)
 		#legacy collision boxes
 		# boundary_top = Rect(self.rect.left, self.rect.top + num, self.rect.width, num)
@@ -321,7 +325,9 @@ class Ball:
 		self.direction = "right"
 		self.anim_ctr = 0
 		self.image = pygame.image.load("../resources/Mario/Mario_" + self.ANIM_NAME[self.IDLE] + "/Mario_"+ self.ANIM_NAME[self.IDLE] +"1.png")
-		self.rect = self.get_rect()
+		self.width = self.image.get_rect().width
+		self.height = self.image.get_rect().height
+		self.rect = Rect(self.position, (self.image.get_rect().width, self.image.get_rect().height))
 
 	def draw(self):
 		self.health_bar.draw()
@@ -340,7 +346,7 @@ class Ball:
 		self.platforms.extend(platforms)
 
 	def get_rect(self):
-		return Rect(self.position, (self.image.get_rect().width, self.image.get_rect().height))
+		return Rect(self.position, (self.width, self.height))
 
 	def jump(self):
 		x, y = self.position
@@ -428,10 +434,10 @@ class Ball:
 					self.speed = 0 
 					self.move(x, platform.boundaries[1].bottom) #+ self.rect.height)		
 					#self.velx = 0
-				elif self.rect.colliderect(platform.boundaries[2]):
+				elif self.rect.colliderect(platform.boundaries[2]): 
 					self.move(platform.boundaries[2].left - self.rect.width, y)		
 					self.velx = 0
-				elif self.rect.colliderect(platform.boundaries[3]):
+				elif self.rect.colliderect(platform.boundaries[3]): 
 					self.move(platform.boundaries[3].right, y)		
 					self.velx = 0
 			self.touching_platform = True in bools
@@ -512,7 +518,7 @@ class Hitbox:
 		else:
 			self.rect = Rect(self.xPos + self.owner.position[0], self.yPos + self.owner.position[1], self.width, self.height)
 		if self.rect.colliderect(ball1.rect) and self.active:
-			#print("kb")
+			print("kb")
 			if(self.owner.direction == "left"):
 				ball1.add_knockback(-self.knockbackX, self.knockbackY)
 			else:
@@ -522,10 +528,11 @@ class Hitbox:
 
 class Health:
 	BASE_HP = 100
-	def __init__(self, position, color, size, text):
+	def __init__(self, position, color, size, text, life_image):
 		self.position = position
 		self.size = size
 		self.lives = 2
+		self.life_image = pygame.image.load(life_image)
 		#self.positiondecrease = positiondecrease
 		self.hp = self.BASE_HP
 		self.color = color
@@ -541,7 +548,9 @@ class Health:
 		size = title.size(self.text)
 		screen.blit(titlefont, (self.position[0] + (self.size - size[0]) / 2, self.position[1] - 40))
 		for i in range(self.lives):
-			pygame.draw.circle(screen, self.color, (self.position[0] + i * 16 + 10, self.position[1] - 15), 4, 0)
+			#pygame.draw.circle(screen, self.color, (self.position[0] + i * 16 + 10, self.position[1] - 15), 4, 0)
+			rect = self.life_image.get_rect()
+			screen.blit(self.life_image, (self.position[0] + i * 20 + 5, self.position[1] - 22, rect.width, rect.height))
 		#bar = pygame.draw.rect(screen, (255, 255, 255), Rect((0, 546), (self.positionx, 576)), 0)
 	
 	def update(self, dmg):
@@ -570,8 +579,8 @@ while 1:
 	#map1 = Map("Final Destination")
 	#pygame.sprite.spritecollide(, surface_group, False)
 
-	hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ")
-	hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ")
+	hbar = Health((0, screen.get_height() - 30), (255, 0, 0), 100, "Player 1 ", "../resources/GUI/Mario_stock1.png")
+	hbar2 = Health((screen.get_width() - 100, screen.get_height() - 30), (0, 255, 0), 100, "Player 2 ", "../resources/GUI/Luigi_stock1.png")
 	ball = Ball((screen.get_width() * .625, screen.get_height() * .3), hbar2, True, map1.platforms)
 	ball1 = Ball((screen.get_width() *.375, screen.get_height() * .3), hbar, False, map1.platforms)
 	ball.direction = "left"
@@ -579,7 +588,6 @@ while 1:
 	shot_list = pygame.sprite.Group()
 
 	while main_game:
-		print(ball.touching_platform)
 		if ball1.health_bar.lives == 0 or ball.health_bar.lives == 0:
 			main_game = False
 			continue
@@ -681,16 +689,22 @@ while 1:
 				ball.anim_mode = ball.DOWN_TILT
 				ball.state_mode = ball.DOWN_TILT
 		elif(ball.falling or ball.jump_ctr<2):
+			if(ball.accx>1.4):
+				ball.accx = 1.4
+			if(ball.accx<-1.4):
+				ball.accx = -1.4
 			if pygame.key.get_pressed()[pygame.K_LEFT]:
 				ball.accx = -1.4
 
 			if pygame.key.get_pressed()[pygame.K_RIGHT]:
 				ball.accx = 1.4
 
-		if pygame.key.get_pressed()[pygame.K_DOWN]: #and not ball.touching_platform:
+		if pygame.key.get_pressed()[pygame.K_DOWN] and ball.touching_platform:
+			ball.fast_falling = True
+			pygame.time.set_timer(USEREVENT + 1, 500)
+		if pygame.key.get_pressed()[pygame.K_DOWN] and not ball.touching_platform:
 			ball.fast_falling = True
 			ball.max_forward_speed *= 2
-			pygame.time.set_timer(USEREVENT + 1, 500)
 		if pygame.key.get_pressed()[pygame.K_o] and not(pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT]):
 			if(ball.anim_mode!=ball.NEUTRAL_B):
 				ball.anim_ctr = 0
@@ -720,7 +734,8 @@ while 1:
 				hitbox.change_kb(5,8)
 				hitbox.active = True
 				ball.speed = -1
-
+				if(ball.touching_platform):
+					ball.accx = 0
 				if(pygame.key.get_pressed()[pygame.K_RIGHT]):
 					ball.direction = "right"
 
@@ -754,7 +769,7 @@ while 1:
 	else:
 		winner = "Player 2"
 
-	pygame.time.delay(1000)
+	pygame.time.delay(750)
 	game_end(winner)
 		#pygame.draw.rect(screen, (0,255,0), ((screen.get_width() / 2, screen.get_height() / 2, 4, 4)), 0) #uncomment to see center 
 
