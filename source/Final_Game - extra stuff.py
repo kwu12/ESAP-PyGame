@@ -29,6 +29,7 @@ death = pygame.mixer.Sound("../resources/Effects/Fall.wav")
 
 
 def greenify(surface):
+	'''converts red in image to green'''
 	surface = surface.copy()
 	for x in range(surface.get_size()[0]):
 		for y in range(surface.get_size()[1]):
@@ -66,6 +67,7 @@ class Button:
 			pygame.draw.rect(screen, (255, 0, 0), (self.rect.left - 3, self.rect.top - 3, self.rect.width + 6, self.rect.height + 6), 1)
 
 	def action(self):
+		'''what button does when clicked'''
 		if self.name == "restart":
 			global main_game
 			main_game = True
@@ -75,7 +77,7 @@ class Button:
 
 
 def game_intro(bypass = False):
-
+	'''beginning game behavior'''
 	if not bypass:
 		pygame.mixer.music.load('../resources/Music/stage_select.mp3')
 		pygame.mixer.music.play(-1, 5)
@@ -130,6 +132,7 @@ def game_intro(bypass = False):
 	main_game = True
 
 def game_end(winner):
+	'''end game behavior'''
 	pygame.mixer.music.load('../resources/Music/GameOver.mp3')
 	pygame.mixer.music.play(-1, 0)
 	end = pygame.font.Font(None, 80)
@@ -186,6 +189,7 @@ def game_end(winner):
 
 
 def create_map_from_file(name):
+	'''creates a map object from a data file. see map data file for format'''
 	plats = []
 	plt = []
 	with open("../data/map_data/" + (name + ".txt"), "r") as f:
@@ -251,6 +255,7 @@ class Platform:
 		# 	pygame.draw.rect(screen, colors[i], self.boundaries[i], 0) #uncomment to see center
 
 	def move(self, x, y):
+		'''relocate platform'''
 		self.x = x
 		self.y = y
 		image_rect = self.image.get_rect()
@@ -272,6 +277,7 @@ class Platform:
 		self.boundaries = [boundary_top, boundary_bottom, boundary_left, boundary_right]
 
 	def mvmnt_inc(self, deltat):
+		'''amount platform should move if it is a moving platform'''
 		#return (self.target - self.move_params[0] / 2) + self.move_params[0] / 2* math.sin(self.time * math.pi / (2 * self.target / 2))
 		speed = self.move_params[1]
 		mod = (math.pi * self.move_params[0]) / (2 * speed)
@@ -365,18 +371,22 @@ class Ball:
 		screen.blit(self.image, self.position)
 
 	def flip(self):
+		'''flips player direction'''
 		if self.direction == "left":
 			self.direction = "right"
 		else:
 			self.direction = "left"
 
 	def add_platforms(self, platforms):
+		'''adds in platforms to platforms list'''
 		self.platforms.extend(platforms)
 
 	def get_rect(self):
+		'''returns rectangle for this ball'''
 		return Rect(self.position, (self.width, self.height))
 
 	def jump(self):
+		'''makes the ball jump up if able to based on jump counters'''
 		x, y = self.position
 		if self.jump_ctr == 2:
 			self.speed = -14
@@ -394,12 +404,14 @@ class Ball:
 			self.anim_ctr = 0
 
 	def move(self, x, y):
+		'''moves ball to new coordinate and updates rectangle'''
 		self.position = (x, y)
 		self.rect = self.get_rect()
 		if(self.speed>2):
 			self.falling = True
 
 	def die(self):
+		'''lose a life and respawn after 1.5 seconds'''
 		self.speed = 0
 		self.velx = 0
 		self.accx = 0
@@ -442,7 +454,7 @@ class Ball:
 		if (not x >= 3000) and (y >= screen.get_height() or x >= screen.get_width() + 25 or x <= -25 or y <= -150):
 			self.die()
 
-			
+		#collision logic
 		bools = []
 		for platform in self.platforms:
 			boundary_rect = platform.boundaries[0]
@@ -475,6 +487,7 @@ class Ball:
 			
 
 	def anim_incrementer_no_loop(self, maxx, dont_loop):
+		'''handle animations. loops throogh animation pictures'''
 		if(self.touching_platform and (self.anim_mode == self.AERIAL or self.anim_mode == self.UP_B)):
 			#print("here")
 			self.anim_mode = self.IDLE
@@ -496,6 +509,7 @@ class Ball:
 			self.anim_ctr = 0
 
 	def add_knockback(self, knockbackX, knockbackY, stun):
+		'''knockbacks the ball'''
 		self.stunned = stun
 		self.velx = knockbackX
 		self.speed = -knockbackY
@@ -556,16 +570,19 @@ class Hitbox:
 		#pygame.draw.rect(screen, (255,0,0), self.rect, 0) 
 
 	def change_rect(self, xPos, yPos, width, height):
+		'''relocates rectangle'''
 		self.yPos = yPos
 		self.xPos = xPos
 		self.width = width
 		self.height = height
 
 	def change_kb(self, kbx, kby):
+		'''changes knockback amount'''
 		self.knockbackX = kbx
 		self.knockbackY = kby
 
 	def update(self):
+		'''collision logic'''
 		if(self.owner.direction == "left"):
 			self.rect = Rect(self.owner.position[0]- self.xPos*2, self.yPos + self.owner.position[1], self.width, self.height)
 		else:
@@ -636,12 +653,13 @@ class Health:
 		# pygame.bar.inflate_ip(self.positiondecrease, -25)
 
 	def lose_life(self):
+		'''decrement lives, reset bar'''
 		self.lives -= 1
 		self.hp = self.BASE_HP
 
 #460 x 171
 
-
+#main loop 
 while 1:
 	game_intro(bypass = False)
 	map1 = create_map_from_file(map_name)
@@ -661,6 +679,7 @@ while 1:
 	first = 0
 
 	while main_game:
+		#handles behavior during main game
 		if first == 2:
 			go_img = pygame.image.load("../resources/GUI/Go.png")
 			screen.blit(go_img, (screen.get_width() /2 - go_img.get_width() / 2 + 50, screen.get_height() / 2- go_img.get_height() / 2, go_img.get_width(), go_img.get_height()))
@@ -690,7 +709,7 @@ while 1:
 			ball1.state_mode = ball1.IDLE
 			ball1.anim_mode = ball1.IDLE
 
-		if(ball.stunned<1):
+		if(ball.stunned<1): #events for player 2
 			for event in events:
 
 				if event.type == QUIT:
@@ -857,7 +876,7 @@ while 1:
 				ball.state_mode = ball.SIDE_B
 
 		
-		if(ball1.stunned<1):
+		if(ball1.stunned<1): #events for player 1
 			for event in events:
 
 				if event.type == QUIT:
